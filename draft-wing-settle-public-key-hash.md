@@ -47,7 +47,7 @@ informative:
 --- abstract
 
 This specification eliminates security warnings when connecting to local domains
-using TLS.  Servers use a long hostname which encodes their public key that
+using TLS.  Servers use a unique, long hostname which encodes their public key that
 the client validates against the public key presented in the TLS handshake.
 
 --- middle
@@ -71,8 +71,70 @@ a Certification Authority (CA) trusted by the client.  This is a
 relaxed way of "doing HTTPS" for servers on the local domain.
 
 
-# Operation
 
+# Unique Host Names {#unique}
+
+Web browsers and other application clients store per-host state using
+the host name, including cached form data such as passwords,
+integrated and 3rd party password managers, cookies, and other data.
+When a name collision occurs (e.g., the same printer.local name on
+two different networks) the client cannot recognize a different host
+is being encountered.  While it is possible to extend all of these
+clients to extend their index to include the server's public key, this
+seems to lack business justification for the engineering effort to
+solely improve the user experience (short name, {{short}}) on local networks.
+
+A unique name can be created by embedding the hash of the public
+key into the name itself.  This achieves uniqueness and is also
+used by the client to validate the server's public key {{validation}}.
+Details on encoding are in {{encoding}}.
+
+
+# Short Host Names {#short}
+
+Unique host names containing encoded public keys are awkward for users. This
+section describes how short names can also be advertised by servers and
+securely validated by clients, so that the short name is presented to
+users while the unique name is used for the TLS connection.
+
+A server already advertising its long name using {{?DNS-SD=RFC6763}}
+can also advertise its short name.  The client needs to validate they
+are the same server, prior to allowing the user to interact with the
+short name.  The client can do this validation by making two
+connections:  one connection to the long name and another to the
+short name and verify they both return the same public key and that
+both TLS handshakes finish successfully (proving the server has
+possession of the associated private key).
+
+The client need only look for matching short name and unique name
+within the same TLD domain name (that is, if a unique name is advertised
+with a ".local" domain, the client does not need to look for its
+accompanying short name within ".internal").
+
+To avoid the problems described in {{unique}}, the TLS data connection
+always uses the long name.  Thus, after the client has validated the
+short name as described above and a user attempts to connect to the
+short name (by typing or by some other user interaction), the client
+instead makes a connection to the unique name.  This reduces the
+integration changes within the client, as clients already separate
+server-specific data based on the server name (e.g., Cookie Store API,
+Credential Management API, Web Bluetooth, Storage API, Push API,
+Notifications API, WebTransport API).
+
+# Validation {#validation}
+
+The client connects to a unique hostname and sends a TLS ClientHello.
+The client parses the returned certificate and extracts the public key
+and compares its hash with the hash contained in the hostname. If they
+match, the TLS session continues. If they do not match, the client
+might warn the user about the certificate (as is common today) or
+simply abortthe TLS connection.  This requires possession of the
+associated private key to successfully complete the TLS handshake,
+preventing a rogue server from impersonating another server.
+
+
+
+# Operation
 
 ## Client Operation
 
@@ -95,62 +157,11 @@ name that includes a hash of its public key.  This unique name is encoded as
 described in {{encoding}}, and might even be configurable on existing
 servers (without software changes).
 
-
-# Unique Host Names {#unique}
-
-Web browsers and other application clients store per-host state using
-the host name, including cached form data such as passwords,
-integrated and 3rd party password managers, cookies, and other data.
-When a name collision occurs (e.g., the same printer.local name on
-two different networks) the client cannot recognize a different host
-is being encountered.  While it is possible to extend all of these
-clients to extend their index to include the server's public key, this
-seems to lack business justification for the engineering effort to
-solely improve the user experience (short name, {{short}}) on local networks.
-
-A unique name can be created by embedding the hash of the public
-key into the name itself.  This achieves uniqueness and is also
-used by the client to validate the server's public key {{validation}}.
-Details on encoding are in {{encoding}}.
+Most servers operating on a local network advertise their presence
+using {{?DNS-SD=RFC6763}} and should continue doing so, advertising
+the name that includes their public key hash.
 
 
-# Short Host Names {#short}
-
-Long host names containing encoded public keys are awkward for users. This
-section describes how short names can also be advertised by servers and
-securely validated by clients, so that the short name is presented to
-users while the long name is used to actually connect.
-
-A server already advertising its long name using mDNS can also advertise
-its short name using mDNS.  The client needs to validate they are the
-same server, prior to allowing the user to interact with the short
-name.  The client can do this by making two connections -- one to the
-long name and another to the short name and verify they both return
-the same public key and that the TLS handshake finishes successfully
-(proving the server has possession of the associated private key).
-
-The client need only look for matching short name and unique name
-within the same TLD domain name (that is, if a unique name is advertised
-with a ".local" domain, the client does not need to look for its
-accompanying short name within ".internal").
-
-To avoid the problems described in {{unique}}, the TLS data connection
-always uses the long name.  Thus, if the client has
-validated the short name as described above and a user attempts to
-connect to the short name (by typing or by some other user
-interaction), the client makes a connection to the unique name.
-
-
-# Validation {#validation}
-
-The client connects to a unique hostname and sends a TLS ClientHello.
-The client parses the returned certificate and extracts the public key
-and compares its hash with the hash contained in the hostname. If they
-match, the TLS session continues. If they do not match, the client
-might warn the user about the certificate (as is common today) or
-simply abortthe TLS connection.  This requires possession of the
-associated private key to successfully complete the TLS handshake,
-preventing a rogue server from impersonating another server.
 
 # Encoding Details {#encoding}
 
@@ -322,5 +333,7 @@ and the full FQDN for its short name would be "printer.local".
 # Acknowledgments
 {:numbered="false"}
 
-This Internet Draft started as a document published by Martin
-Thomson in 2007.
+This draft was inspired by a document published by Martin
+Thomson in 2007; however, this draft takes a different approach
+by using long names.
+
