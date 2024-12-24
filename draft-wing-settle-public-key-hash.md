@@ -20,8 +20,8 @@ venue:
 #  type: Working Group
 #  mail: WG@example.com
 #  arch: https://example.com/WG
-  github: "danwing/https-local-domains"
-  latest: "https://danwing.github.io/https-local-domains/draft-thomson-https-local-domains.html"
+  github: "danwing/public-key-hash"
+  latest: "https://danwing.github.io/public-key-hash/draft-wing-settle-public-key-hash.html"
 
 author:
  -
