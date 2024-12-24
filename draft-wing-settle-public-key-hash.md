@@ -16,29 +16,32 @@ keyword:
  - unicorn
  - sparkling distributed ledger
 venue:
-#  group: WG
-#  type: Working Group
-#  mail: WG@example.com
-#  arch: https://example.com/WG
+  group: SETTLE
+  type: ""
+  mail: settle@ietf.org
+  arch: https://mailarchive.ietf.org/arch/browse/settle/
   github: "danwing/public-key-hash"
   latest: "https://danwing.github.io/public-key-hash/draft-wing-settle-public-key-hash.html"
 
 author:
  -
-    fullname: Martin Thomson
-    organization: Mozilla
-    email: mt@lowentropy.net
- -
     ins: D. Wing
     name: Dan Wing
-    organization: Cloud Software Group Holdings, Inc.
-    abbrev: Cloud Software Group
+    organization: Citrix
+    abbrev: Citrix
     email: danwing@gmail.com
-    role: editor
+
 
 normative:
 
 informative:
+
+  secure-context:
+    title: Web Platform Design Principles
+    date: June 2024
+    author:
+      org: W3C
+    target: https://w3ctag.github.io/design-principles/#secure-context
 
 
 --- abstract
@@ -51,24 +54,25 @@ the client validates against the public key presented in the TLS handshake.
 
 # Introduction
 
-TODO Introduction
 
+Browsers are progressively reducing the capabilities and features that
+are available to origins that use unsecured HTTP. In particular, new
+features are being developed exclusively for HTTPS origins which
+require CA-signed certificates ({{secure-context}}).  However,
+obtaining CA-signed certificates is difficult for servers operating in
+local domains because the local domains prohibit incoming connections
+and because the local domain does not already have its own public
+domain name.
 
-# Conventions and Definitions
-
-{::boilerplate bcp14-tagged}
+This draft discusses how a client can authenticate to HTTPS servers
+belonging to the local domain where the server name is a hash of the
+server's public key.  This avoids the need for a certificate signed by
+a Certification Authority (CA) trusted by the client.  This is a
+relaxed way of "doing HTTPS" for servers on the local domain.
 
 
 # Operation
 
-## Server Operation
-
-A server running on a local network (see {{unique}}) uses a unique host
-name that includes a hash of its public key.  This unique name is encoded as
-described in {{encoding}}.
-
-The server MAY also advertise its unique name using {{?DNS-SD=RFC6763}}.  It
-MAY also advertise its short name as described in {{short}}.
 
 ## Client Operation
 
@@ -83,6 +87,13 @@ matches the public key received in the TLS ServerHello. If they match,
 the client authenticates the TLS connection. If they do not match, the
 client behavior falls back to the client's normal handling of the
 presented TLS raw public key or certificate (which may well be valid).
+
+## Server Operation
+
+A server running on a local network (see {{unique}}) uses a unique host
+name that includes a hash of its public key.  This unique name is encoded as
+described in {{encoding}}, and might even be configurable on existing
+servers (without software changes).
 
 
 # Unique Host Names {#unique}
@@ -102,9 +113,6 @@ key into the name itself.  This achieves uniqueness and is also
 used by the client to validate the server's public key {{validation}}.
 Details on encoding are in {{encoding}}.
 
-To ease clients connecting to these long names, servers SHOULD
-advertise their long names on the local network {{?DNS-SD=RFC6763}}.
-
 
 # Short Host Names {#short}
 
@@ -113,13 +121,13 @@ section describes how short names can also be advertised by servers and
 securely validated by clients, so that the short name is presented to
 users while the long name is used to actually connect.
 
-The server advertises both its (long) unique name and its short
-nickname using {{!DNS-SD=RFC6763}}.  The client connects to the long
-name and performs a full TLS handshake and validation
-({{validation}}).  The client then connects to the short nickname and
-performs a full TLS handshake. If the same public key was presented by
-both TLS connections, the client SHOULD present both the
-long name and short name to the user.
+A server already advertising its long name using mDNS can also advertise
+its short name using mDNS.  The client needs to validate they are the
+same server, prior to allowing the user to interact with the short
+name.  The client can do this by making two connections -- one to the
+long name and another to the short name and verify they both return
+the same public key and that the TLS handshake finishes successfully
+(proving the server has possession of the associated private key).
 
 The client need only look for matching short name and unique name
 within the same TLD domain name (that is, if a unique name is advertised
@@ -127,37 +135,22 @@ with a ".local" domain, the client does not need to look for its
 accompanying short name within ".internal").
 
 To avoid the problems described in {{unique}}, the TLS data connection
-to the printer MUST always use the long name.  Thus, if the client has
+always uses the long name.  Thus, if the client has
 validated the short name as described above and a user attempts to
-connect to printer.local (by typing or by some other user
-interaction), the client MUST connect to the unique name.  The TLS
-connection to the short name MUST NOT be used by the client after the
-TLS handshake completes and the server MUST terminate the TLS
-handshake after the Finished message by sending TLS close_notify.
+connect to the short name (by typing or by some other user
+interaction), the client makes a connection to the unique name.
 
-
-# Raw Public Keys {#rpk}
-
-Todo:  rewrite this section
-
-Certificates are complicated for most people. They also have an
-expiration date.  This system uses a public key for the lifetime
-of the device, which is hopefully years. A certificate is not
-appropriate; a raw public key is more approporiate.
 
 # Validation {#validation}
 
 The client connects to a unique hostname and sends a TLS ClientHello.
-As the client only needs the raw public key, the request MAY include
-a request for a raw public key {{!RFC7250}}.  The client parses
-the returned certificate or raw public key to extract the public key
-and compare its hash with the hash contained in the hostname. If
-they match, the TLS session continues. If they do not match, the
-client might warn the user (as is common today) or simply abandon
-the TLS connection.
-
-If a certificate is returned both its 'NotBefore' and 'NotAfter' dates
-are ignored for purposes of this specification.
+The client parses the returned certificate and extracts the public key
+and compares its hash with the hash contained in the hostname. If they
+match, the TLS session continues. If they do not match, the client
+might warn the user about the certificate (as is common today) or
+simply abortthe TLS connection.  This requires possession of the
+associated private key to successfully complete the TLS handshake,
+preventing a rogue server from impersonating another server.
 
 # Encoding Details {#encoding}
 
@@ -185,15 +178,12 @@ encoded-hostname = friendly-name "."
 ~~~~~
 {: artwork-align="center" artwork-name="encoding"}
 
-An example encoding is shown in {{test-encoding}}.
-
+An example encoding is shown in {{example-encoding}}.
 
 # Identifying Servers as Local {#local}
 
 This section defines the domain names and IP addresses considered
-"local" which clients MAY use with this specification.  Other domain
-names and other IP addresses SHOULD NOT be used with this
-specification.
+"local".
 
 ## Local Domain Names
 
@@ -215,15 +205,19 @@ connection is made to that address, those are also considered
 * fc00::/7 (from {{?RFC4193}})
 * 127/8 and ::1/128 (from {{?RFC990}} and {{?RFC4291}})
 
-# Incremental Deployment
-
-Where a server's hostname can be configured, a motivated network
-administrator can configure server hostnames to comply with this
-specification to provide immediate value to supporting clients.
-
 # Security Considerations
 
 TODO: write more on security considerations
+
+## Rogue Servers on Local Domain
+
+A client may also want to defend against rogue servers installed on
+the network.  This requires legitimate servers be enrolled in such as
+by a local domain Certification Authority (e.g.,
+{{?I-D.sweet-iot-acme}}).
+
+
+## Public Key Hash
 
 Because the server's public key is encoded into its domain name,
 changing the public key would also change its domain name -- thus, its
@@ -238,8 +232,6 @@ servers, which is vulnerable to passive attack, or to condition users
 to validate self-signed certificates for local servers.
 
 
-
-
 # IANA Considerations {#iana}
 
 New registry for hash type, 0=SHA256.  Extensions via IETF Action.
@@ -247,14 +239,7 @@ New registry for hash type, 0=SHA256.  Extensions via IETF Action.
 
 --- back
 
-# Discussion Points
-
-## DTLS
-
-This should work for DTLS, as well?
-
-
-# Test Encoding {#test-encoding}
+# Example Encoding {#example-encoding}
 
 Server with private key in PEM format is:
 
