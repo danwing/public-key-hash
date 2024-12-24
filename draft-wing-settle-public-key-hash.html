@@ -8,7 +8,7 @@
 <meta content="Dan Wing" name="author">
 <meta content="
        This specification eliminates security warnings when connecting to local domains
-using TLS.  Servers use a long hostname which encodes their public key that
+using TLS.  Servers use a unique, long hostname which encodes their public key that
 the client validates against the public key presented in the TLS handshake. 
     " name="description">
 <meta content="xml2rfc 3.25.0" name="generator">
@@ -1084,7 +1084,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This specification eliminates security warnings when connecting to local domains
-using TLS.  Servers use a long hostname which encodes their public key that
+using TLS.  Servers use a unique, long hostname which encodes their public key that
 the client validates against the public key presented in the TLS handshake.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
@@ -1155,24 +1155,24 @@ the client validates against the public key presented in the TLS handshake.<a hr
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-operation" class="internal xref">Operation</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
-                <p id="section-toc.1-1.2.2.1.1" class="keepWithNext"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-client-operation" class="internal xref">Client Operation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
-                <p id="section-toc.1-1.2.2.2.1" class="keepWithNext"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-server-operation" class="internal xref">Server Operation</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-unique-host-names" class="internal xref">Unique Host Names</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-unique-host-names" class="internal xref">Unique Host Names</a></p>
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-short-host-names" class="internal xref">Short Host Names</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-short-host-names" class="internal xref">Short Host Names</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-validation" class="internal xref">Validation</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-validation" class="internal xref">Validation</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-operation" class="internal xref">Operation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-client-operation" class="internal xref">Client Operation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-server-operation" class="internal xref">Server Operation</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-encoding-details" class="internal xref">Encoding Details</a></p>
@@ -1246,17 +1246,84 @@ a Certification Authority (CA) trusted by the client.  This is a
 relaxed way of "doing HTTPS" for servers on the local domain.<a href="#section-1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="operation">
+<div id="unique">
 <section id="section-2">
+      <h2 id="name-unique-host-names">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-unique-host-names" class="section-name selfRef">Unique Host Names</a>
+      </h2>
+<p id="section-2-1">Web browsers and other application clients store per-host state using
+the host name, including cached form data such as passwords,
+integrated and 3rd party password managers, cookies, and other data.
+When a name collision occurs (e.g., the same printer.local name on
+two different networks) the client cannot recognize a different host
+is being encountered.  While it is possible to extend all of these
+clients to extend their index to include the server's public key, this
+seems to lack business justification for the engineering effort to
+solely improve the user experience (short name, <a href="#short" class="auto internal xref">Section 3</a>) on local networks.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">A unique name can be created by embedding the hash of the public
+key into the name itself.  This achieves uniqueness and is also
+used by the client to validate the server's public key <a href="#validation" class="auto internal xref">Section 4</a>.
+Details on encoding are in <a href="#encoding" class="auto internal xref">Section 6</a>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="short">
+<section id="section-3">
+      <h2 id="name-short-host-names">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-short-host-names" class="section-name selfRef">Short Host Names</a>
+      </h2>
+<p id="section-3-1">Unique host names containing encoded public keys are awkward for users. This
+section describes how short names can also be advertised by servers and
+securely validated by clients, so that the short name is presented to
+users while the unique name is used for the TLS connection.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">A server already advertising its long name using <span>[<a href="#DNS-SD" class="cite xref">DNS-SD</a>]</span>
+can also advertise its short name.  The client needs to validate they
+are the same server, prior to allowing the user to interact with the
+short name.  The client can do this validation by making two
+connections:  one connection to the long name and another to the
+short name and verify they both return the same public key and that
+both TLS handshakes finish successfully (proving the server has
+possession of the associated private key).<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">The client need only look for matching short name and unique name
+within the same TLD domain name (that is, if a unique name is advertised
+with a ".local" domain, the client does not need to look for its
+accompanying short name within ".internal").<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">To avoid the problems described in <a href="#unique" class="auto internal xref">Section 2</a>, the TLS data connection
+always uses the long name.  Thus, after the client has validated the
+short name as described above and a user attempts to connect to the
+short name (by typing or by some other user interaction), the client
+instead makes a connection to the unique name.  This reduces the
+integration changes within the client, as clients already separate
+server-specific data based on the server name (e.g., Cookie Store API,
+Credential Management API, Web Bluetooth, Storage API, Push API,
+Notifications API, WebTransport API).<a href="#section-3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="validation">
+<section id="section-4">
+      <h2 id="name-validation">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-validation" class="section-name selfRef">Validation</a>
+      </h2>
+<p id="section-4-1">The client connects to a unique hostname and sends a TLS ClientHello.
+The client parses the returned certificate and extracts the public key
+and compares its hash with the hash contained in the hostname. If they
+match, the TLS session continues. If they do not match, the client
+might warn the user about the certificate (as is common today) or
+simply abortthe TLS connection.  This requires possession of the
+associated private key to successfully complete the TLS handshake,
+preventing a rogue server from impersonating another server.<a href="#section-4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="operation">
+<section id="section-5">
       <h2 id="name-operation">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-operation" class="section-name selfRef">Operation</a>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-operation" class="section-name selfRef">Operation</a>
       </h2>
 <div id="client-operation">
-<section id="section-2.1">
+<section id="section-5.1">
         <h3 id="name-client-operation">
-<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-client-operation" class="section-name selfRef">Client Operation</a>
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-client-operation" class="section-name selfRef">Client Operation</a>
         </h3>
-<p id="section-2.1-1">When clients connect to such a local domain name or IP address
+<p id="section-5.1-1">When clients connect to such a local domain name or IP address
 (<a href="#local" class="auto internal xref">Section 7</a>) using TLS they examine if the domain name starts with a
 registered hash identifier in the second label and if the rest of that
 label consists of an appropriate-length encoded hash. If those
@@ -1266,82 +1333,23 @@ server's raw public key or certificate, the client checks if the hash
 matches the public key received in the TLS ServerHello. If they match,
 the client authenticates the TLS connection. If they do not match, the
 client behavior falls back to the client's normal handling of the
-presented TLS raw public key or certificate (which may well be valid).<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+presented TLS raw public key or certificate (which may well be valid).<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="server-operation">
-<section id="section-2.2">
+<section id="section-5.2">
         <h3 id="name-server-operation">
-<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-server-operation" class="section-name selfRef">Server Operation</a>
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-server-operation" class="section-name selfRef">Server Operation</a>
         </h3>
-<p id="section-2.2-1">A server running on a local network (see <a href="#unique" class="auto internal xref">Section 3</a>) uses a unique host
+<p id="section-5.2-1">A server running on a local network (see <a href="#unique" class="auto internal xref">Section 2</a>) uses a unique host
 name that includes a hash of its public key.  This unique name is encoded as
 described in <a href="#encoding" class="auto internal xref">Section 6</a>, and might even be configurable on existing
-servers (without software changes).<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+servers (without software changes).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Most servers operating on a local network advertise their presence
+using <span>[<a href="#DNS-SD" class="cite xref">DNS-SD</a>]</span> and should continue doing so, advertising
+the name that includes their public key hash.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-</section>
-</div>
-<div id="unique">
-<section id="section-3">
-      <h2 id="name-unique-host-names">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-unique-host-names" class="section-name selfRef">Unique Host Names</a>
-      </h2>
-<p id="section-3-1">Web browsers and other application clients store per-host state using
-the host name, including cached form data such as passwords,
-integrated and 3rd party password managers, cookies, and other data.
-When a name collision occurs (e.g., the same printer.local name on
-two different networks) the client cannot recognize a different host
-is being encountered.  While it is possible to extend all of these
-clients to extend their index to include the server's public key, this
-seems to lack business justification for the engineering effort to
-solely improve the user experience (short name, <a href="#short" class="auto internal xref">Section 4</a>) on local networks.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">A unique name can be created by embedding the hash of the public
-key into the name itself.  This achieves uniqueness and is also
-used by the client to validate the server's public key <a href="#validation" class="auto internal xref">Section 5</a>.
-Details on encoding are in <a href="#encoding" class="auto internal xref">Section 6</a>.<a href="#section-3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="short">
-<section id="section-4">
-      <h2 id="name-short-host-names">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-short-host-names" class="section-name selfRef">Short Host Names</a>
-      </h2>
-<p id="section-4-1">Long host names containing encoded public keys are awkward for users. This
-section describes how short names can also be advertised by servers and
-securely validated by clients, so that the short name is presented to
-users while the long name is used to actually connect.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">A server already advertising its long name using mDNS can also advertise
-its short name using mDNS.  The client needs to validate they are the
-same server, prior to allowing the user to interact with the short
-name.  The client can do this by making two connections -- one to the
-long name and another to the short name and verify they both return
-the same public key and that the TLS handshake finishes successfully
-(proving the server has possession of the associated private key).<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">The client need only look for matching short name and unique name
-within the same TLD domain name (that is, if a unique name is advertised
-with a ".local" domain, the client does not need to look for its
-accompanying short name within ".internal").<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">To avoid the problems described in <a href="#unique" class="auto internal xref">Section 3</a>, the TLS data connection
-always uses the long name.  Thus, if the client has
-validated the short name as described above and a user attempts to
-connect to the short name (by typing or by some other user
-interaction), the client makes a connection to the unique name.<a href="#section-4-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="validation">
-<section id="section-5">
-      <h2 id="name-validation">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-validation" class="section-name selfRef">Validation</a>
-      </h2>
-<p id="section-5-1">The client connects to a unique hostname and sends a TLS ClientHello.
-The client parses the returned certificate and extracts the public key
-and compares its hash with the hash contained in the hostname. If they
-match, the TLS session continues. If they do not match, the client
-might warn the user about the certificate (as is common today) or
-simply abortthe TLS connection.  This requires possession of the
-associated private key to successfully complete the TLS handshake,
-preventing a rogue server from impersonating another server.<a href="#section-5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="encoding">
@@ -1499,6 +1507,10 @@ to validate self-signed certificates for local servers.<a href="#section-8.2-1" 
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="DNS-SD">[DNS-SD]</dt>
+        <dd>
+<span class="refAuthor">Cheshire, S.</span> and <span class="refAuthor">M. Krochmal</span>, <span class="refTitle">"DNS-Based Service Discovery"</span>, <span class="seriesInfo">RFC 6763</span>, <span class="seriesInfo">DOI 10.17487/RFC6763</span>, <time datetime="2013-02" class="refDate">February 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6763">https://www.rfc-editor.org/rfc/rfc6763</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="Homenet">[Homenet]</dt>
         <dd>
 <span class="refAuthor">Pfister, P.</span> and <span class="refAuthor">T. Lemon</span>, <span class="refTitle">"Special-Use Domain 'home.arpa.'"</span>, <span class="seriesInfo">RFC 8375</span>, <span class="seriesInfo">DOI 10.17487/RFC8375</span>, <time datetime="2018-05" class="refDate">May 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8375">https://www.rfc-editor.org/rfc/rfc8375</a>&gt;</span>. </dd>
@@ -1640,8 +1652,9 @@ printer.0EHV4BUAOTDR4WKEXHDRMBEPFGLCK3ASA4A3FWIQGPIKES2J6LIMA.local
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-B-1">This Internet Draft started as a document published by Martin
-Thomson in 2007.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">This draft was inspired by a document published by Martin
+Thomson in 2007; however, this draft takes a different approach
+by using long names.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
