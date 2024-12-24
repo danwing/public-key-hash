@@ -2,15 +2,14 @@
 
 
 
-Network Working Group                                         M. Thomson
-Internet-Draft                                                   Mozilla
-Intended status: Standards Track                            D. Wing, Ed.
-Expires: 27 June 2025                               Cloud Software Group
-                                                        24 December 2024
+Network Working Group                                            D. Wing
+Internet-Draft                                                    Citrix
+Intended status: Standards Track                        24 December 2024
+Expires: 27 June 2025
 
 
                    Public Key Hash for Local Domains
-                   draft-wing-settle-public-key-hash
+                draft-wing-settle-public-key-hash-latest
 
 Abstract
 
@@ -24,13 +23,17 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://danwing.github.io/https-local-domains/draft-thomson-https-
-   local-domains.html.  Status information for this document may be
-   found at https://datatracker.ietf.org/doc/draft-wing-settle-public-
-   key/.
+   https://danwing.github.io/public-key-hash/draft-wing-settle-public-
+   key-hash.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-wing-settle-public-key-hash/.
+
+   Discussion of this document takes place on the SETTLE mailing list
+   (mailto:settle@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/settle/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/settle/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/danwing/https-local-domains.
+   https://github.com/danwing/public-key-hash.
 
 Status of This Memo
 
@@ -66,57 +69,50 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-   2.  Conventions and Definitions
-   3.  Operation
-     3.1.  Server Operation
-     3.2.  Client Operation
-   4.  Unique Host Names
-   5.  Short Host Names
-   6.  Raw Public Keys
-   7.  Validation
-   8.  Encoding Details
-   9.  Identifying Servers as Local
-     9.1.  Local Domain Names
-     9.2.  Local IP Addresses
-   10. Incremental Deployment
-   11. Security Considerations
-   12. IANA Considerations
-   13. References
-     13.1.  Normative References
-     13.2.  Informative References
-   Appendix A.  Discussion Points
-     A.1.  DTLS
-   Appendix B.  Test Encoding
+   2.  Operation
+     2.1.  Client Operation
+     2.2.  Server Operation
+   3.  Unique Host Names
+   4.  Short Host Names
+   5.  Validation
+   6.  Encoding Details
+   7.  Identifying Servers as Local
+     7.1.  Local Domain Names
+     7.2.  Local IP Addresses
+   8.  Security Considerations
+     8.1.  Rogue Servers on Local Domain
+     8.2.  Public Key Hash
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
+   Appendix A.  Example Encoding
    Acknowledgments
-   Authors' Addresses
+   Author's Address
 
 1.  Introduction
 
-   TODO Introduction
+   Browsers are progressively reducing the capabilities and features
+   that are available to origins that use unsecured HTTP.  In
+   particular, new features are being developed exclusively for HTTPS
+   origins which require CA-signed certificates ([secure-context]).
+   However, obtaining CA-signed certificates is difficult for servers
+   operating in local domains because the local domains prohibit
+   incoming connections and because the local domain does not already
+   have its own public domain name.
 
-2.  Conventions and Definitions
+   This draft discusses how a client can authenticate to HTTPS servers
+   belonging to the local domain where the server name is a hash of the
+   server's public key.  This avoids the need for a certificate signed
+   by a Certification Authority (CA) trusted by the client.  This is a
+   relaxed way of "doing HTTPS" for servers on the local domain.
 
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-   "OPTIONAL" in this document are to be interpreted as described in
-   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
-   capitals, as shown here.
+2.  Operation
 
-3.  Operation
-
-3.1.  Server Operation
-
-   A server running on a local network (see Section 4) uses a unique
-   host name that includes a hash of its public key.  This unique name
-   is encoded as described in Section 8.
-
-   The server MAY also advertise its unique name using [DNS-SD].  It MAY
-   also advertise its short name as described in Section 5.
-
-3.2.  Client Operation
+2.1.  Client Operation
 
    When clients connect to such a local domain name or IP address
-   (Section 9) using TLS they examine if the domain name starts with a
+   (Section 7) using TLS they examine if the domain name starts with a
    registered hash identifier in the second label and if the rest of
    that label consists of an appropriate-length encoded hash.  If those
    conditions apply, the client MAY send a TLS ClientHello with the Raw
@@ -128,7 +124,14 @@ Table of Contents
    of the presented TLS raw public key or certificate (which may well be
    valid).
 
-4.  Unique Host Names
+2.2.  Server Operation
+
+   A server running on a local network (see Section 3) uses a unique
+   host name that includes a hash of its public key.  This unique name
+   is encoded as described in Section 6, and might even be configurable
+   on existing servers (without software changes).
+
+3.  Unique Host Names
 
    Web browsers and other application clients store per-host state using
    the host name, including cached form data such as passwords,
@@ -138,76 +141,59 @@ Table of Contents
    is being encountered.  While it is possible to extend all of these
    clients to extend their index to include the server's public key,
    this seems to lack business justification for the engineering effort
-   to solely improve the user experience (short name, Section 5) on
+   to solely improve the user experience (short name, Section 4) on
    local networks.
 
    A unique name can be created by embedding the hash of the public key
    into the name itself.  This achieves uniqueness and is also used by
-   the client to validate the server's public key Section 7.  Details on
-   encoding are in Section 8.
+   the client to validate the server's public key Section 5.  Details on
+   encoding are in Section 6.
 
-   To ease clients connecting to these long names, servers SHOULD
-   advertise their long names on the local network [DNS-SD].
-
-5.  Short Host Names
+4.  Short Host Names
 
    Long host names containing encoded public keys are awkward for users.
    This section describes how short names can also be advertised by
    servers and securely validated by clients, so that the short name is
    presented to users while the long name is used to actually connect.
 
-   The server advertises both its (long) unique name and its short
-   nickname using [DNS-SD].  The client connects to the long name and
-   performs a full TLS handshake and validation (Section 7).  The client
-   then connects to the short nickname and performs a full TLS
-   handshake.  If the same public key was presented by both TLS
-   connections, the client SHOULD present both the long name and short
-   name to the user.
+   A server already advertising its long name using mDNS can also
+   advertise its short name using mDNS.  The client needs to validate
+   they are the same server, prior to allowing the user to interact with
+   the short name.  The client can do this by making two connections --
+   one to the long name and another to the short name and verify they
+   both return the same public key and that the TLS handshake finishes
+   successfully (proving the server has possession of the associated
+   private key).
 
    The client need only look for matching short name and unique name
    within the same TLD domain name (that is, if a unique name is
    advertised with a ".local" domain, the client does not need to look
    for its accompanying short name within ".internal").
 
-   To avoid the problems described in Section 4, the TLS data connection
-   to the printer MUST always use the long name.  Thus, if the client
-   has validated the short name as described above and a user attempts
-   to connect to printer.local (by typing or by some other user
-   interaction), the client MUST connect to the unique name.  The TLS
-   connection to the short name MUST NOT be used by the client after the
-   TLS handshake completes and the server MUST terminate the TLS
-   handshake after the Finished message by sending TLS close_notify.
+   To avoid the problems described in Section 3, the TLS data connection
+   always uses the long name.  Thus, if the client has validated the
+   short name as described above and a user attempts to connect to the
+   short name (by typing or by some other user interaction), the client
+   makes a connection to the unique name.
 
-6.  Raw Public Keys
-
-   Todo: rewrite this section
-
-   Certificates are complicated for most people.  They also have an
-   expiration date.  This system uses a public key for the lifetime of
-   the device, which is hopefully years.  A certificate is not
-   appropriate; a raw public key is more approporiate.
-
-7.  Validation
+5.  Validation
 
    The client connects to a unique hostname and sends a TLS ClientHello.
-   As the client only needs the raw public key, the request MAY include
-   a request for a raw public key [RFC7250].  The client parses the
-   returned certificate or raw public key to extract the public key and
-   compare its hash with the hash contained in the hostname.  If they
-   match, the TLS session continues.  If they do not match, the client
-   might warn the user (as is common today) or simply abandon the TLS
-   connection.
+   The client parses the returned certificate and extracts the public
+   key and compares its hash with the hash contained in the hostname.
+   If they match, the TLS session continues.  If they do not match, the
+   client might warn the user about the certificate (as is common today)
+   or simply abortthe TLS connection.  This requires possession of the
+   associated private key to successfully complete the TLS handshake,
+   preventing a rogue server from impersonating another server.
 
-   If a certificate is returned both its 'NotBefore' and 'NotAfter'
-   dates are ignored for purposes of this specification.
-
-8.  Encoding Details
+6.  Encoding Details
 
    The general format is hostname, a period, a digit indicating the hash
    algorithm, and then the hash of the server's public key.  The binary
    hash output is base32 encoded (Section 6 of [RFC4648]) without
    trailing "=" padding.  Currently only SHA256 hash is defined with the
-   value "0" (Section 12).  While base32 encoding is specified as
+   value "0" (Section 9).  While base32 encoding is specified as
    uppercase, implementations should treat uppercase, lowercase, and
    mixed case the same.
 
@@ -224,16 +210,14 @@ Table of Contents
                                 hash-algorithm
                                 hash
 
-   An example encoding is shown in Appendix B.
+   An example encoding is shown in Appendix A.
 
-9.  Identifying Servers as Local
+7.  Identifying Servers as Local
 
    This section defines the domain names and IP addresses considered
-   "local" which clients MAY use with this specification.  Other domain
-   names and other IP addresses SHOULD NOT be used with this
-   specification.
+   "local".
 
-9.1.  Local Domain Names
+7.1.  Local Domain Names
 
    The following domain name suffixes are considered "local":
 
@@ -245,7 +229,7 @@ Table of Contents
 
    *  both ".localhost" and "localhost" (Section 6.3 of [RFC6761])
 
-9.2.  Local IP Addresses
+7.2.  Local IP Addresses
 
    Additionally, if any host resolves to a local IP address and
    connection is made to that address, those are also considered
@@ -259,15 +243,18 @@ Table of Contents
 
    *  127/8 and ::1/128 (from [RFC990] and [RFC4291])
 
-10.  Incremental Deployment
-
-   Where a server's hostname can be configured, a motivated network
-   administrator can configure server hostnames to comply with this
-   specification to provide immediate value to supporting clients.
-
-11.  Security Considerations
+8.  Security Considerations
 
    TODO: write more on security considerations
+
+8.1.  Rogue Servers on Local Domain
+
+   A client may also want to defend against rogue servers installed on
+   the network.  This requires legitimate servers be enrolled in such as
+   by a local domain Certification Authority (e.g.,
+   [I-D.sweet-iot-acme]).
+
+8.2.  Public Key Hash
 
    Because the server's public key is encoded into its domain name,
    changing the public key would also change its domain name -- thus,
@@ -282,38 +269,19 @@ Table of Contents
    attack, or to condition users to validate self-signed certificates
    for local servers.
 
-12.  IANA Considerations
+9.  IANA Considerations
 
    New registry for hash type, 0=SHA256.  Extensions via IETF Action.
 
-13.  References
+10.  References
 
-13.1.  Normative References
-
-   [DNS-SD]   Cheshire, S. and M. Krochmal, "DNS-Based Service
-              Discovery", RFC 6763, DOI 10.17487/RFC6763, February 2013,
-              <https://www.rfc-editor.org/rfc/rfc6763>.
-
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997,
-              <https://www.rfc-editor.org/rfc/rfc2119>.
+10.1.  Normative References
 
    [RFC4648]  Josefsson, S., "The Base16, Base32, and Base64 Data
               Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
               <https://www.rfc-editor.org/rfc/rfc4648>.
 
-   [RFC7250]  Wouters, P., Ed., Tschofenig, H., Ed., Gilmore, J.,
-              Weiler, S., and T. Kivinen, "Using Raw Public Keys in
-              Transport Layer Security (TLS) and Datagram Transport
-              Layer Security (DTLS)", RFC 7250, DOI 10.17487/RFC7250,
-              June 2014, <https://www.rfc-editor.org/rfc/rfc7250>.
-
-   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
-              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
-              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
-
-13.2.  Informative References
+10.2.  Informative References
 
    [Homenet]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
@@ -325,6 +293,12 @@ Table of Contents
               davies-internal-tld-01, 18 October 2024,
               <https://datatracker.ietf.org/doc/html/draft-davies-
               internal-tld-01>.
+
+   [I-D.sweet-iot-acme]
+              Sweet, M., "ACME-Based Provisioning of IoT Devices", Work
+              in Progress, Internet-Draft, draft-sweet-iot-acme-06, 9
+              August 2024, <https://datatracker.ietf.org/doc/html/draft-
+              sweet-iot-acme-06>.
 
    [mDNS]     Cheshire, S. and M. Krochmal, "Multicast DNS", RFC 6762,
               DOI 10.17487/RFC6762, February 2013,
@@ -352,17 +326,22 @@ Table of Contents
               RFC 6761, DOI 10.17487/RFC6761, February 2013,
               <https://www.rfc-editor.org/rfc/rfc6761>.
 
+   [RFC7250]  Wouters, P., Ed., Tschofenig, H., Ed., Gilmore, J.,
+              Weiler, S., and T. Kivinen, "Using Raw Public Keys in
+              Transport Layer Security (TLS) and Datagram Transport
+              Layer Security (DTLS)", RFC 7250, DOI 10.17487/RFC7250,
+              June 2014, <https://www.rfc-editor.org/rfc/rfc7250>.
+
    [RFC990]   Reynolds, J. and J. Postel, "Assigned numbers", RFC 990,
               DOI 10.17487/RFC0990, November 1986,
               <https://www.rfc-editor.org/rfc/rfc990>.
 
-Appendix A.  Discussion Points
+   [secure-context]
+              W3C, "Web Platform Design Principles", June 2024,
+              <https://w3ctag.github.io/design-principles/#secure-
+              context>.
 
-A.1.  DTLS
-
-   This should work for DTLS, as well?
-
-Appendix B.  Test Encoding
+Appendix A.  Example Encoding
 
    Server with private key in PEM format is:
 
@@ -434,13 +413,8 @@ Acknowledgments
    This Internet Draft started as a document published by Martin Thomson
    in 2007.
 
-Authors' Addresses
+Author's Address
 
-   Martin Thomson
-   Mozilla
-   Email: mt@lowentropy.net
-
-
-   Dan Wing (editor)
-   Cloud Software Group Holdings, Inc.
+   Dan Wing
+   Citrix
    Email: danwing@gmail.com
