@@ -3,7 +3,7 @@ title: "Public Key Hash for Local Domains"
 abbrev: "Public Key Hash for Local Domains"
 category: std
 
-docname: draft-wing-settle-public-key-hash
+docname: draft-wing-settle-public-key-hash-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
