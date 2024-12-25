@@ -43,6 +43,14 @@ informative:
       org: W3C
     target: https://w3ctag.github.io/design-principles/#secure-context
 
+  wing-referee:
+     title: A Referee to Authenticate Home Servers
+     date: December 2024
+     author:
+       name: Dan Wing
+       org: Citrix
+     target: https://datatracker.ietf.org/doc/html/draft-wing-settle-referee
+
 
 --- abstract
 
@@ -79,15 +87,15 @@ the host name, including cached form data such as passwords,
 integrated and 3rd party password managers, cookies, and other data.
 When a name collision occurs (e.g., the same printer.local name on
 two different networks) the client cannot recognize a different host
-is being encountered.  While it is possible to extend all of these
-clients to extend their index to include the server's public key, this
-seems to lack business justification for the engineering effort to
-solely improve the user experience (short name, {{short}}) on local networks.
+is being encountered.  By creating a unique name, existing client
+software (browsers, password managers, client libraries) can continue
+storing origin-specific data for each of unique name.
 
-A unique name can be created by embedding the hash of the public
-key into the name itself.  This achieves uniqueness and is also
-used by the client to validate the server's public key {{validation}}.
-Details on encoding are in {{encoding}}.
+A unique name is created by embedding the hash of the public key into
+the name itself.  This achieves uniqueness and the encoding is also
+identifyable by the client to assist its validation of the server's
+public key ({{client}}).  Details on encoding the domain name are in
+{{encoding}}.
 
 
 # Short Host Names {#short}
@@ -106,6 +114,10 @@ short name and verify they both return the same public key and that
 both TLS handshakes finish successfully (proving the server has
 possession of the associated private key).
 
+> NOTE: Also to be considered is including both the unique host name
+and the short host name in the SubjectAltName field of the server's
+certificate. This avoids an additional {{?DNS-SD=RFC6763}} advertisement.
+
 The client need only look for matching short name and unique name
 within the same TLD domain name (that is, if a unique name is advertised
 with a ".local" domain, the client does not need to look for its
@@ -121,49 +133,51 @@ server-specific data based on the server name (e.g., Cookie Store API,
 Credential Management API, Web Bluetooth, Storage API, Push API,
 Notifications API, WebTransport API).
 
-# Validation {#validation}
-
-The client connects to a unique hostname and sends a TLS ClientHello.
-The client parses the returned certificate and extracts the public key
-and compares its hash with the hash contained in the hostname. If they
-match, the TLS session continues. If they do not match, the client
-might warn the user about the certificate (as is common today) or
-simply abortthe TLS connection.  This requires possession of the
-associated private key to successfully complete the TLS handshake,
-preventing a rogue server from impersonating another server.
-
 
 
 # Operation
 
-## Client Operation
+## Client Operation {#client}
 
 When clients connect to such a local domain name or IP address
 ({{local}}) using TLS they examine if the domain name starts with a
 registered hash identifier in the second label and if the rest of that
-label consists of an appropriate-length encoded hash. If those
-conditions apply, the client MAY send a TLS ClientHello with the Raw
-Public Key extension {{?RFC7250}}. When the client receives the
-server's raw public key or certificate, the client checks if the hash
-matches the public key received in the TLS ServerHello. If they match,
-the client authenticates the TLS connection. If they do not match, the
-client behavior falls back to the client's normal handling of the
-presented TLS raw public key or certificate (which may well be valid).
+label consists of an appropriate-length encoded hash.  If those
+conditions apply, the client performs certificate validation as
+described below.
+
+Upon receipt of the server's certificate, the client validates
+validates the certificate ({{?RFC9525}}, {{?RFC5280}}, and {{Section
+4.3.4 of ?RFC9110}} if using HTTPS).  When performing such a
+connection to a local domain, the client might avoid warning about a
+self-signed certificate because the Certification Authority (CA)
+signature will certainly not be signed by a trusted CA.  Rather, a
+more subtle indication might be warranted for TLS connections to a
+local domain, perhaps only the first time or perhaps each time.  The
+client parses the returned certificate and extracts the public key and
+compares its hash with the hash contained in the hostname. If they
+match, the TLS session continues. If they do not match, the client
+might warn the user about the certificate (as is common today) or
+simply abort the TLS connection.
+
+Protection against rogue servers on the local network is discussed
+in {{rogue}}.
+
 
 ## Server Operation
 
-A server running on a local network (see {{unique}}) uses a unique host
-name that includes a hash of its public key.  This unique name is encoded as
-described in {{encoding}}, and might even be configurable on existing
-servers (without software changes).
+A server running on a local network (see {{unique}}) uses a unique
+host name that includes a hash of its public key.  This unique name is
+encoded as described in {{encoding}}.  Existing servers might be
+configurable with such a hostname, without software changes.
 
-Most servers operating on a local network advertise their presence
-using {{?DNS-SD=RFC6763}} and should continue doing so, advertising
-the name that includes their public key hash.
+Oftentimes, servers operating on a local network already advertise
+their presence using {{?DNS-SD=RFC6763}} and should continue doing so,
+advertising their unique name that includes their public key hash
+and optionally also a shorter nickname ({{short}}).
 
 
-
-# Encoding Details {#encoding}
+# Unique Host Name Encoding Details {#encoding}
 
 The general format is hostname, a period, a digit indicating the hash
 algorithm, and then the hash of the server's public key.  The binary
@@ -191,6 +205,7 @@ encoded-hostname = friendly-name "."
 
 An example encoding is shown in {{example-encoding}}.
 
+
 # Identifying Servers as Local {#local}
 
 This section defines the domain names and IP addresses considered
@@ -216,16 +231,17 @@ connection is made to that address, those are also considered
 * fc00::/7 (from {{?RFC4193}})
 * 127/8 and ::1/128 (from {{?RFC990}} and {{?RFC4291}})
 
+
 # Security Considerations
 
 TODO: write more on security considerations
 
-## Rogue Servers on Local Domain
+## Rogue Servers on Local Domain {#rogue}
 
 A client may also want to defend against rogue servers installed on
-the network.  This requires legitimate servers be enrolled in such as
+the local domain.  This requires legitimate servers be enrolled in such as
 by a local domain Certification Authority (e.g.,
-{{?I-D.sweet-iot-acme}}).
+{{?I-D.sweet-iot-acme}}) or a local domain oracle (e.g., {{wing-referee}}).
 
 
 ## Public Key Hash
@@ -335,5 +351,7 @@ and the full FQDN for its short name would be "printer.local".
 
 This draft was inspired by a document published by Martin
 Thomson in 2007; however, this draft takes a different approach
-by using long names.
+by using unique names over the wire.
 
+Other systems have also utilized public key hashes in an identifier
+including Tor and Freenet's Content Hash Key.
