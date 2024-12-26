@@ -30,7 +30,7 @@ author:
     organization: Citrix
     abbrev: Citrix
     email: danwing@gmail.com
-
+    country: United States of America
 
 normative:
 
@@ -53,7 +53,6 @@ informative:
 
 
 --- abstract
-
 This specification eliminates security warnings when connecting to local domains
 using TLS.  Servers use a unique, long hostname which encodes their public key that
 the client validates against the public key presented in the TLS handshake.
@@ -63,20 +62,20 @@ the client validates against the public key presented in the TLS handshake.
 # Introduction
 
 
-Browsers are progressively reducing the capabilities and features that
-are available to origins that use unsecured HTTP. In particular, new
-features are being developed exclusively for HTTPS origins which
-require CA-signed certificates ({{secure-context}}).  However,
-obtaining CA-signed certificates is difficult for servers operating in
-local domains because the local domains prohibit incoming connections
-and because the local domain does not already have its own public
-domain name.
+Browsers are progressively requiring secure origins for new
+capabilities and features ({{secure-context}}). As secure origins are
+only obtainable, today, with a certificate signed by a Certification
+Authority trusted by the client, this leaves out devices and networks
+which cannot easily obtain such certificates.  Such inability is due
+to network topology (e.g., firewall), lack of domain ownership, or
+complicated procedures.
 
 This draft discusses how a client can authenticate to HTTPS servers
 belonging to the local domain where the server name is a hash of the
-server's public key.  This avoids the need for a certificate signed by
-a Certification Authority (CA) trusted by the client.  This is a
-relaxed way of "doing HTTPS" for servers on the local domain.
+server's public key.  By doing so, a secure origin can be established.
+This avoids the need for a certificate signed by a Certification
+Authority (CA) trusted by the client.  This is a relaxed way of "doing
+HTTPS" for servers on the local domain.
 
 
 
@@ -93,7 +92,7 @@ storing origin-specific data for each of unique name.
 
 A unique name is created by embedding the hash of the public key into
 the name itself.  This achieves uniqueness and the encoding is also
-identifyable by the client to assist its validation of the server's
+identifiable by the client to assist its validation of the server's
 public key ({{client}}).  Details on encoding the domain name are in
 {{encoding}}.
 
@@ -229,7 +228,7 @@ connection is made to that address, those are also considered
 * 10/8, 172.16/12, and 192.168/16 (from {{?RFC1918}})
 * 169.254/16 and fe80::/10 (from {{?RFC3927}} and {{?RFC4291}})
 * fc00::/7 (from {{?RFC4193}})
-* 127/8 and ::1/128 (from {{?RFC990}} and {{?RFC4291}})
+* 127/8 and ::1/128 (from {{Section 3.2.1.3 of ?RFC1122}} and {{?RFC4291}})
 
 
 # Security Considerations
