@@ -4,8 +4,8 @@
 
 Network Working Group                                            D. Wing
 Internet-Draft                                                    Citrix
-Intended status: Standards Track                        25 December 2024
-Expires: 28 June 2025
+Intended status: Standards Track                        26 December 2024
+Expires: 29 June 2025
 
 
                    Public Key Hash for Local Domains
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 June 2025.
+   This Internet-Draft will expire on 29 June 2025.
 
 Copyright Notice
 
@@ -91,19 +91,19 @@ Table of Contents
 
 1.  Introduction
 
-   Browsers are progressively reducing the capabilities and features
-   that are available to origins that use unsecured HTTP.  In
-   particular, new features are being developed exclusively for HTTPS
-   origins which require CA-signed certificates ([secure-context]).
-   However, obtaining CA-signed certificates is difficult for servers
-   operating in local domains because the local domains prohibit
-   incoming connections and because the local domain does not already
-   have its own public domain name.
+   Browsers are progressively requiring secure origins for new
+   capabilities and features ([secure-context]).  As secure origins are
+   only obtainable, today, with a certificate signed by a Certification
+   Authority trusted by the client, this leaves out devices and networks
+   which cannot easily obtain such certificates.  Such inability is due
+   to network topology (e.g., firewall), lack of domain ownership, or
+   complicated procedures.
 
    This draft discusses how a client can authenticate to HTTPS servers
    belonging to the local domain where the server name is a hash of the
-   server's public key.  This avoids the need for a certificate signed
-   by a Certification Authority (CA) trusted by the client.  This is a
+   server's public key.  By doing so, a secure origin can be
+   established.  This avoids the need for a certificate signed by a
+   Certification Authority (CA) trusted by the client.  This is a
    relaxed way of "doing HTTPS" for servers on the local domain.
 
 2.  Unique Host Names
@@ -119,7 +119,7 @@ Table of Contents
 
    A unique name is created by embedding the hash of the public key into
    the name itself.  This achieves uniqueness and the encoding is also
-   identifyable by the client to assist its validation of the server's
+   identifiable by the client to assist its validation of the server's
    public key (Section 4.1).  Details on encoding the domain name are in
    Section 5.
 
@@ -254,7 +254,8 @@ Table of Contents
 
    *  fc00::/7 (from [RFC4193])
 
-   *  127/8 and ::1/128 (from [RFC990] and [RFC4291])
+   *  127/8 and ::1/128 (from Section 3.2.1.3 of [RFC1122] and
+      [RFC4291])
 
 7.  Security Considerations
 
@@ -322,6 +323,11 @@ Table of Contents
               DOI 10.17487/RFC6762, February 2013,
               <https://www.rfc-editor.org/rfc/rfc6762>.
 
+   [RFC1122]  Braden, R., Ed., "Requirements for Internet Hosts -
+              Communication Layers", STD 3, RFC 1122,
+              DOI 10.17487/RFC1122, October 1989,
+              <https://www.rfc-editor.org/rfc/rfc1122>.
+
    [RFC1918]  Rekhter, Y., Moskowitz, B., Karrenberg, D., de Groot, G.
               J., and E. Lear, "Address Allocation for Private
               Internets", BCP 5, RFC 1918, DOI 10.17487/RFC1918,
@@ -358,10 +364,6 @@ Table of Contents
    [RFC9525]  Saint-Andre, P. and R. Salz, "Service Identity in TLS",
               RFC 9525, DOI 10.17487/RFC9525, November 2023,
               <https://www.rfc-editor.org/rfc/rfc9525>.
-
-   [RFC990]   Reynolds, J. and J. Postel, "Assigned numbers", RFC 990,
-              DOI 10.17487/RFC0990, November 1986,
-              <https://www.rfc-editor.org/rfc/rfc990>.
 
    [secure-context]
               W3C, "Web Platform Design Principles", June 2024,
@@ -453,4 +455,5 @@ Author's Address
 
    Dan Wing
    Citrix
+   United States of America
    Email: danwing@gmail.com
