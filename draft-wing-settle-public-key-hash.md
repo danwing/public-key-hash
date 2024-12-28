@@ -43,15 +43,6 @@ informative:
       org: W3C
     target: https://w3ctag.github.io/design-principles/#secure-context
 
-  wing-referee:
-     title: A Referee to Authenticate Home Servers
-     date: December 2024
-     author:
-       name: Dan Wing
-       org: Citrix
-     target: https://datatracker.ietf.org/doc/html/draft-wing-settle-referee
-
-
 --- abstract
 This specification eliminates security warnings when connecting to local domains
 using TLS.  Servers use a unique, long hostname which encodes their public key that
@@ -111,11 +102,16 @@ short name.  The client can do this validation by making two
 connections:  one connection to the long name and another to the
 short name and verify they both return the same public key and that
 both TLS handshakes finish successfully (proving the server has
-possession of the associated private key).
+possession of the associated private key).  Advertising both names
+enables incremental deployment within a local domain at the expense
+of user confusion (two names per device, like a human named both
+"Bob" and "Richard") and on-the-wire inefficiency.
 
-> NOTE: Also to be considered is including both the unique host name
-and the short host name in the SubjectAltName field of the server's
-certificate. This avoids an additional {{?DNS-SD=RFC6763}} advertisement.
+> NOTE: Also to be considered is including both the unique and short
+host name in the SubjectAltName field of the server's
+certificate. This avoids an additional advertisement but has worse
+incremental deployment characteristics -- legacy software won't notice
+the other name in the SubjectAltName.
 
 The client need only look for matching short name and unique name
 within the same TLD domain name (that is, if a unique name is advertised
@@ -128,9 +124,9 @@ short name as described above and a user attempts to connect to the
 short name (by typing or by some other user interaction), the client
 instead makes a connection to the unique name.  This reduces the
 integration changes within the client, as clients already separate
-server-specific data based on the server name (e.g., Cookie Store API,
-Credential Management API, Web Bluetooth, Storage API, Push API,
-Notifications API, WebTransport API).
+server-specific data based on the server's hostname (e.g., Cookie
+Store API, Credential Management API, Web Bluetooth, Storage API, Push
+API, Notifications API, WebTransport API).
 
 
 
@@ -179,28 +175,30 @@ and optionally also a shorter nickname ({{short}}).
 # Unique Host Name Encoding Details {#encoding}
 
 The general format is hostname, a period, a digit indicating the hash
-algorithm, and then the hash of the server's public key.  The binary
-hash output is base32 encoded ({{Section 6 of !RFC4648}}) without
-trailing "=" padding.  Currently only SHA256 hash is defined with the
-value "0" ({{iana}}).  While base32 encoding is specified as uppercase,
-implementations should treat uppercase, lowercase, and mixed case
-the same.
+algorithm, and then the hash of the server's public key as shown in
+{{abnf-encoding}}.  The binary hash output is base32 encoded ({{Section 6
+of !RFC4648}}) without trailing "=" padding.  Currently only SHA256
+hash is defined with the value "0" ({{iana}}).  While base32 encoding
+is specified as uppercase, implementations should treat uppercase,
+lowercase, and mixed case the same.  (Base32 encoding was chosen
+instead of base64 or base64url encoding to avoid their illegal
+hostname characters and their case preservation requirement.)
 
-~~~~ abnf
-friendly-name = 1*63(ALPHA / DIGIT / "-")
+~~~~abnf
+  friendly-name = 1*63(ALPHA / DIGIT / "-")
 
-hash-algorithm = DIGIT   ; 0=SHA256
+  hash-algorithm = DIGIT   ; 0=SHA256
 
-base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
+  base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
 
-hash = 1*62(/ ALPHA / base32-digits )
-     ; 62+1 octet limit from RFC1035
+  hash = 1*62(/ ALPHA / base32-digits )
+       ; 62+1 octet limit from RFC1035
 
-encoded-hostname = friendly-name "."
-                   hash-algorithm
-                   hash
+  encoded-hostname = friendly-name "."
+                     hash-algorithm
+                     hash
 ~~~~~
-{: artwork-align="center" artwork-name="encoding"}
+{: #abnf-encoding artwork-align="left" title="ABNF of hostname encoding"}
 
 An example encoding is shown in {{example-encoding}}.
 
@@ -238,9 +236,9 @@ TODO: write more on security considerations
 ## Rogue Servers on Local Domain {#rogue}
 
 A client may also want to defend against rogue servers installed on
-the local domain.  This requires legitimate servers be enrolled in such as
-by a local domain Certification Authority (e.g.,
-{{?I-D.sweet-iot-acme}}) or a local domain oracle (e.g., {{wing-referee}}).
+the local domain.  This requires legitimate servers be enrolled with
+a trusted system such as a local domain Certification Authority (e.g.,
+{{?I-D.sweet-iot-acme}}) and that enrollment verified.
 
 
 ## Public Key Hash
@@ -354,3 +352,5 @@ by using unique names over the wire.
 
 Other systems have also utilized public key hashes in an identifier
 including Tor and Freenet's Content Hash Key.
+
+Thanks to Sridharan Rajagopalan for reviews and feedback.
