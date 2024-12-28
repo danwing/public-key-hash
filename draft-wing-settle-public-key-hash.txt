@@ -4,8 +4,8 @@
 
 Network Working Group                                            D. Wing
 Internet-Draft                                                    Citrix
-Intended status: Standards Track                        26 December 2024
-Expires: 29 June 2025
+Intended status: Standards Track                        28 December 2024
+Expires: 1 July 2025
 
 
                    Public Key Hash for Local Domains
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 June 2025.
+   This Internet-Draft will expire on 1 July 2025.
 
 Copyright Notice
 
@@ -138,12 +138,16 @@ Table of Contents
    one connection to the long name and another to the short name and
    verify they both return the same public key and that both TLS
    handshakes finish successfully (proving the server has possession of
-   the associated private key).
+   the associated private key).  Advertising both names enables
+   incremental deployment within a local domain at the expense of user
+   confusion (two names per device, like a human named both "Bob" and
+   "Richard") and on-the-wire inefficiency.
 
-      NOTE: Also to be considered is including both the unique host name
-      and the short host name in the SubjectAltName field of the
-      server's certificate.  This avoids an additional [DNS-SD]
-      advertisement.
+      NOTE: Also to be considered is including both the unique and short
+      host name in the SubjectAltName field of the server's certificate.
+      This avoids an additional advertisement but has worse incremental
+      deployment characteristics -- legacy software won't notice the
+      other name in the SubjectAltName.
 
    The client need only look for matching short name and unique name
    within the same TLD domain name (that is, if a unique name is
@@ -156,9 +160,9 @@ Table of Contents
    short name (by typing or by some other user interaction), the client
    instead makes a connection to the unique name.  This reduces the
    integration changes within the client, as clients already separate
-   server-specific data based on the server name (e.g., Cookie Store
-   API, Credential Management API, Web Bluetooth, Storage API, Push API,
-   Notifications API, WebTransport API).
+   server-specific data based on the server's hostname (e.g., Cookie
+   Store API, Credential Management API, Web Bluetooth, Storage API,
+   Push API, Notifications API, WebTransport API).
 
 4.  Operation
 
@@ -203,25 +207,29 @@ Table of Contents
 5.  Unique Host Name Encoding Details
 
    The general format is hostname, a period, a digit indicating the hash
-   algorithm, and then the hash of the server's public key.  The binary
-   hash output is base32 encoded (Section 6 of [RFC4648]) without
-   trailing "=" padding.  Currently only SHA256 hash is defined with the
-   value "0" (Section 8).  While base32 encoding is specified as
-   uppercase, implementations should treat uppercase, lowercase, and
-   mixed case the same.
+   algorithm, and then the hash of the server's public key as shown in
+   Figure 1.  The binary hash output is base32 encoded (Section 6 of
+   [RFC4648]) without trailing "=" padding.  Currently only SHA256 hash
+   is defined with the value "0" (Section 8).  While base32 encoding is
+   specified as uppercase, implementations should treat uppercase,
+   lowercase, and mixed case the same.  (Base32 encoding was chosen
+   instead of base64 or base64url encoding to avoid their illegal
+   hostname characters and their case preservation requirement.)
 
-             friendly-name = 1*63(ALPHA / DIGIT / "-")
+     friendly-name = 1*63(ALPHA / DIGIT / "-")
 
-             hash-algorithm = DIGIT   ; 0=SHA256
+     hash-algorithm = DIGIT   ; 0=SHA256
 
-             base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
+     base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
 
-             hash = 1*62(/ ALPHA / base32-digits )
-                  ; 62+1 octet limit from RFC1035
+     hash = 1*62(/ ALPHA / base32-digits )
+          ; 62+1 octet limit from RFC1035
 
-             encoded-hostname = friendly-name "."
-                                hash-algorithm
-                                hash
+     encoded-hostname = friendly-name "."
+                        hash-algorithm
+                        hash
+
+                    Figure 1: ABNF of hostname encoding
 
    An example encoding is shown in Appendix A.
 
@@ -264,10 +272,9 @@ Table of Contents
 7.1.  Rogue Servers on Local Domain
 
    A client may also want to defend against rogue servers installed on
-   the local domain.  This requires legitimate servers be enrolled in
-   such as by a local domain Certification Authority (e.g.,
-   [I-D.sweet-iot-acme]) or a local domain oracle (e.g.,
-   [wing-referee]).
+   the local domain.  This requires legitimate servers be enrolled with
+   a trusted system such as a local domain Certification Authority
+   (e.g., [I-D.sweet-iot-acme]) and that enrollment verified.
 
 7.2.  Public Key Hash
 
@@ -370,11 +377,6 @@ Table of Contents
               <https://w3ctag.github.io/design-principles/#secure-
               context>.
 
-   [wing-referee]
-              Wing, D., "A Referee to Authenticate Home Servers",
-              December 2024, <https://datatracker.ietf.org/doc/html/
-              draft-wing-settle-referee>.
-
 Appendix A.  Example Encoding
 
    Server with private key in PEM format is:
@@ -450,6 +452,8 @@ Acknowledgments
 
    Other systems have also utilized public key hashes in an identifier
    including Tor and Freenet's Content Hash Key.
+
+   Thanks to Sridharan Rajagopalan for reviews and feedback.
 
 Author's Address
 

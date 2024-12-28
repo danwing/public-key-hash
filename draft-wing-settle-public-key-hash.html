@@ -1052,7 +1052,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Wing</td>
-<td class="center">Expires 29 June 2025</td>
+<td class="center">Expires 1 July 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1065,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-wing-settle-public-key-hash-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-12-26" class="published">26 December 2024</time>
+<time datetime="2024-12-28" class="published">28 December 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-06-29">29 June 2025</time></dd>
+<dd class="expires"><time datetime="2025-07-01">1 July 2025</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,7 +1122,7 @@ the client validates against the public key presented in the TLS handshake.<a hr
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 June 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1279,12 +1279,17 @@ short name.  The client can do this validation by making two
 connections:  one connection to the long name and another to the
 short name and verify they both return the same public key and that
 both TLS handshakes finish successfully (proving the server has
-possession of the associated private key).<a href="#section-3-2" class="pilcrow">¶</a></p>
+possession of the associated private key).  Advertising both names
+enables incremental deployment within a local domain at the expense
+of user confusion (two names per device, like a human named both
+"Bob" and "Richard") and on-the-wire inefficiency.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-3.1">
-          <p id="section-3-3.1.1">NOTE: Also to be considered is including both the unique host name
-and the short host name in the SubjectAltName field of the server's
-certificate. This avoids an additional <span>[<a href="#DNS-SD" class="cite xref">DNS-SD</a>]</span> advertisement.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.1.1">NOTE: Also to be considered is including both the unique and short
+host name in the SubjectAltName field of the server's
+certificate. This avoids an additional advertisement but has worse
+incremental deployment characteristics -- legacy software won't notice
+the other name in the SubjectAltName.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-3-4">The client need only look for matching short name and unique name
@@ -1297,9 +1302,9 @@ short name as described above and a user attempts to connect to the
 short name (by typing or by some other user interaction), the client
 instead makes a connection to the unique name.  This reduces the
 integration changes within the client, as clients already separate
-server-specific data based on the server name (e.g., Cookie Store API,
-Credential Management API, Web Bluetooth, Storage API, Push API,
-Notifications API, WebTransport API).<a href="#section-3-5" class="pilcrow">¶</a></p>
+server-specific data based on the server's hostname (e.g., Cookie
+Store API, Credential Management API, Web Bluetooth, Storage API, Push
+API, Notifications API, WebTransport API).<a href="#section-3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="operation">
@@ -1357,27 +1362,34 @@ and optionally also a shorter nickname (<a href="#short" class="auto internal xr
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-unique-host-name-encoding-d" class="section-name selfRef">Unique Host Name Encoding Details</a>
       </h2>
 <p id="section-5-1">The general format is hostname, a period, a digit indicating the hash
-algorithm, and then the hash of the server's public key.  The binary
-hash output is base32 encoded (<span><a href="https://rfc-editor.org/rfc/rfc4648#section-6" class="relref">Section 6</a> of [<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>) without
-trailing "=" padding.  Currently only SHA256 hash is defined with the
-value "0" (<a href="#iana" class="auto internal xref">Section 8</a>).  While base32 encoding is specified as uppercase,
-implementations should treat uppercase, lowercase, and mixed case
-the same.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<div class="alignCenter art-abnf art-text artwork" id="section-5-2">
+algorithm, and then the hash of the server's public key as shown in
+<a href="#abnf-encoding" class="auto internal xref">Figure 1</a>.  The binary hash output is base32 encoded (<span><a href="https://rfc-editor.org/rfc/rfc4648#section-6" class="relref">Section 6</a> of [<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>) without trailing "=" padding.  Currently only SHA256
+hash is defined with the value "0" (<a href="#iana" class="auto internal xref">Section 8</a>).  While base32 encoding
+is specified as uppercase, implementations should treat uppercase,
+lowercase, and mixed case the same.  (Base32 encoding was chosen
+instead of base64 or base64url encoding to avoid their illegal
+hostname characters and their case preservation requirement.)<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span id="name-abnf-of-hostname-encoding"></span><div id="abnf-encoding">
+<figure id="figure-1">
+        <div class="alignLeft art-abnf art-text artwork" id="section-5-2.1">
 <pre>
-friendly-name = 1*63(ALPHA / DIGIT / "-")
+  friendly-name = 1*63(ALPHA / DIGIT / "-")
 
-hash-algorithm = DIGIT   ; 0=SHA256
+  hash-algorithm = DIGIT   ; 0=SHA256
 
-base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
+  base32-digits = "2" / "3" / "4" / "5" / "6" / "7"
 
-hash = 1*62(/ ALPHA / base32-digits )
-     ; 62+1 octet limit from RFC1035
+  hash = 1*62(/ ALPHA / base32-digits )
+       ; 62+1 octet limit from RFC1035
 
-encoded-hostname = friendly-name "."
-                   hash-algorithm
-                   hash
-</pre><a href="#section-5-2" class="pilcrow">¶</a>
+  encoded-hostname = friendly-name "."
+                     hash-algorithm
+                     hash
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-abnf-of-hostname-encoding" class="selfRef">ABNF of hostname encoding</a>
+        </figcaption></figure>
 </div>
 <p id="section-5-3">An example encoding is shown in <a href="#example-encoding" class="auto internal xref">Appendix A</a>.<a href="#section-5-3" class="pilcrow">¶</a></p>
 </section>
@@ -1449,9 +1461,9 @@ connection is made to that address, those are also considered
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-rogue-servers-on-local-doma" class="section-name selfRef">Rogue Servers on Local Domain</a>
         </h3>
 <p id="section-7.1-1">A client may also want to defend against rogue servers installed on
-the local domain.  This requires legitimate servers be enrolled in such as
-by a local domain Certification Authority (e.g.,
-<span>[<a href="#I-D.sweet-iot-acme" class="cite xref">I-D.sweet-iot-acme</a>]</span>) or a local domain oracle (e.g., <span>[<a href="#wing-referee" class="cite xref">wing-referee</a>]</span>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+the local domain.  This requires legitimate servers be enrolled with
+a trusted system such as a local domain Certification Authority (e.g.,
+<span>[<a href="#I-D.sweet-iot-acme" class="cite xref">I-D.sweet-iot-acme</a>]</span>) and that enrollment verified.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="public-key-hash">
@@ -1563,12 +1575,8 @@ to validate self-signed certificates for local servers.<a href="#section-7.2-1" 
 <span class="refAuthor">Saint-Andre, P.</span> and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"Service Identity in TLS"</span>, <span class="seriesInfo">RFC 9525</span>, <span class="seriesInfo">DOI 10.17487/RFC9525</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9525">https://www.rfc-editor.org/rfc/rfc9525</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="secure-context">[secure-context]</dt>
-        <dd>
-<span class="refAuthor">W3C</span>, <span class="refTitle">"Web Platform Design Principles"</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://w3ctag.github.io/design-principles/#secure-context">https://w3ctag.github.io/design-principles/#secure-context</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="wing-referee">[wing-referee]</dt>
       <dd>
-<span class="refAuthor">Wing, D.</span>, <span class="refTitle">"A Referee to Authenticate Home Servers"</span>, <time datetime="2024-12" class="refDate">December 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-wing-settle-referee">https://datatracker.ietf.org/doc/html/draft-wing-settle-referee</a>&gt;</span>. </dd>
+<span class="refAuthor">W3C</span>, <span class="refTitle">"Web Platform Design Principles"</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://w3ctag.github.io/design-principles/#secure-context">https://w3ctag.github.io/design-principles/#secure-context</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1668,6 +1676,7 @@ Thomson in 2007; however, this draft takes a different approach
 by using unique names over the wire.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 <p id="appendix-B-2">Other systems have also utilized public key hashes in an identifier
 including Tor and Freenet's Content Hash Key.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+<p id="appendix-B-3">Thanks to Sridharan Rajagopalan for reviews and feedback.<a href="#appendix-B-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
