@@ -4,8 +4,8 @@
 
 Network Working Group                                            D. Wing
 Internet-Draft                                                    Citrix
-Intended status: Standards Track                        28 December 2024
-Expires: 1 July 2025
+Intended status: Standards Track                        30 December 2024
+Expires: 3 July 2025
 
 
                    Public Key Hash for Local Domains
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 July 2025.
+   This Internet-Draft will expire on 3 July 2025.
 
 Copyright Notice
 
@@ -267,7 +267,19 @@ Table of Contents
 
 7.  Security Considerations
 
-   TODO: write more on security considerations
+   Due to operational challenges in key rotation, some servers may need
+   to maintain static public/private key pairs over long periods.  This
+   introduces a tradeoff: while static keys expose servers to risks of
+   private key compromise , encrypted communication provides better
+   security than unencrypted communication.  The current approach to use
+   unencrypted communication to local servers is vulnerable to passive
+   attacks.
+
+   This document proposes a new method for clients to authenticate
+   servers within local domains.  By associating a server’s public key
+   with its origin (defined as the scheme, hostname, and port per
+   [RFC6454]), a client can differentiate between servers using the same
+   non-unique local domain name, such as printer.local.
 
 7.1.  Rogue Servers on Local Domain
 
@@ -358,6 +370,10 @@ Table of Contents
               Infrastructure Certificate and Certificate Revocation List
               (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
               <https://www.rfc-editor.org/rfc/rfc5280>.
+
+   [RFC6454]  Barth, A., "The Web Origin Concept", RFC 6454,
+              DOI 10.17487/RFC6454, December 2011,
+              <https://www.rfc-editor.org/rfc/rfc6454>.
 
    [RFC6761]  Cheshire, S. and M. Krochmal, "Special-Use Domain Names",
               RFC 6761, DOI 10.17487/RFC6761, February 2013,
