@@ -231,7 +231,18 @@ connection is made to that address, those are also considered
 
 # Security Considerations
 
-TODO: write more on security considerations
+Due to operational challenges in key rotation, some servers may need to
+maintain static public/private key pairs over long periods. This introduces a
+tradeoff: while static keys expose servers to risks of private key compromise
+, encrypted communication provides better security than unencrypted communication. The current approach
+to use unencrypted communication to local servers is vulnerable to passive
+attacks.
+
+This document proposes a new method for clients to authenticate servers within local
+domains. By associating a server’s public key with its origin
+(defined as the scheme, hostname, and port per {{?RFC6454}}), a client can differentiate
+between servers using the same non-unique local domain name, such as printer.local.
+
 
 ## Rogue Servers on Local Domain {#rogue}
 
