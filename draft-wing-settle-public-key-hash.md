@@ -244,7 +244,7 @@ is both error-prone and impractical.
 
 This document proposes a new method for clients to authenticate servers within local
 domains. By associating a server’s public key with its origin
-(defined as the scheme, hostname, and port per RFC 6454), a client can differentiate
+(defined as the scheme, hostname, and port per {{?RFC6454}}), a client can differentiate
 between servers using the same non-unique local domain name, such as printer.local.
 
 
