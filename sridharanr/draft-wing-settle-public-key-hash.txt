@@ -271,9 +271,9 @@ Table of Contents
 
    This document proposes a new method for clients to authenticate
    servers within local domains.  By associating a server’s public key
-   with its origin (defined as the scheme, hostname, and port per RFC
-   6454), a client can differentiate between servers using the same non-
-   unique local domain name, such as printer.local.
+   with its origin (defined as the scheme, hostname, and port per
+   [RFC6454]), a client can differentiate between servers using the same
+   non-unique local domain name, such as printer.local.
 
 7.1.  Rogue Servers on Local Domain
 
@@ -365,6 +365,10 @@ Table of Contents
               Infrastructure Certificate and Certificate Revocation List
               (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
               <https://www.rfc-editor.org/rfc/rfc5280>.
+
+   [RFC6454]  Barth, A., "The Web Origin Concept", RFC 6454,
+              DOI 10.17487/RFC6454, December 2011,
+              <https://www.rfc-editor.org/rfc/rfc6454>.
 
    [RFC6761]  Cheshire, S. and M. Krochmal, "Special-Use Domain Names",
               RFC 6761, DOI 10.17487/RFC6761, February 2013,
