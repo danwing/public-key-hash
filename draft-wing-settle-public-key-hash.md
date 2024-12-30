@@ -258,7 +258,7 @@ A client may also want to defend against rogue servers installed on
 the local domain.  This requires legitimate servers be enrolled with a
 trust anchor system such as a local domain Certification Authority
 (e.g., {{?I-D.sweet-iot-acme}}) or other system (e.g.,
-{{?EST=RFC7030}}) and that enrollment verified.
+{{?EST=RFC7030}}) and that enrollment verified by the client.
 
 
 ## Public Key Hash
