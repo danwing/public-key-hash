@@ -1445,11 +1445,9 @@ connection is made to that address, those are also considered
 <p id="section-7-1">Due to operational challenges in key rotation, some servers may need to
 maintain static public/private key pairs over long periods. This introduces a
 tradeoff: while static keys expose servers to risks of private key compromise
-and active attacks (e.g., traffic interception or server impersonation), they
-still provide better security than unencrypted communication. The current approach
-to use unencrypted communication to local servers—is highly vulnerable to passive
-attacks. Another option, conditioning users to validate self-signed certificates,
-is both error-prone and impractical.<a href="#section-7-1" class="pilcrow">¶</a></p>
+, encrypted communication provides better security than unencrypted communication. The current approach
+to use unencrypted communication to local servers is vulnerable to passive
+attacks.<a href="#section-7-1" class="pilcrow">¶</a></p>
 <p id="section-7-2">This document proposes a new method for clients to authenticate servers within local
 domains. By associating a server’s public key with its origin
 (defined as the scheme, hostname, and port per <span>[<a href="#RFC6454" class="cite xref">RFC6454</a>]</span>), a client can differentiate
