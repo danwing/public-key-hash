@@ -238,7 +238,7 @@ maintain static public/private key pairs over long periods. This introduces a
 tradeoff: while static keys expose servers to risks of private key compromise
 , encrypted communication provides better security than unencrypted communication. The current approach
 to use unencrypted communication to local servers is vulnerable to passive
-attacks. 
+attacks.
 
 This document proposes a new method for clients to authenticate servers within local
 domains. By associating a server’s public key with its origin
