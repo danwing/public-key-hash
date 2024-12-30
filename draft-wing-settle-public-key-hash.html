@@ -1454,23 +1454,17 @@ connection is made to that address, those are also considered
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-7-1">Due to operational challenges in key rotation, some servers may need to
-maintain static public/private key pairs over long periods. This introduces a
-tradeoff: while static keys expose servers to risks of private key compromise
-, encrypted communication provides better security than unencrypted communication. The current approach
-to use unencrypted communication to local servers is vulnerable to passive
-attacks.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">This document proposes a new method for clients to authenticate servers within local
+<p id="section-7-1">This document proposes a new method for clients to authenticate servers within local
 domains. By associating a server’s public key with its origin
 (defined as the scheme, hostname, and port per <span>[<a href="#RFC6454" class="cite xref">RFC6454</a>]</span>), a client can differentiate
-between servers using the same non-unique local domain name, such as printer.local.<a href="#section-7-2" class="pilcrow">¶</a></p>
-<p id="section-7-3">The unique names formed by the hostname encoding of this draft allows
+between servers using the same non-unique local domain name, such as printer.local.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">The unique names formed by the hostname encoding of this draft allows
 a client to differentiate between a distinct server (which has a
 different hostname than other servers) and an attacker (which lacks
 the private key necessary to complete the TLS handshake).  This is
 useful to avoid security warnings when the client moves between
 networks and connects to uniquely-named servers, while providing
-security warnings of an attacker impersonating a server.<a href="#section-7-3" class="pilcrow">¶</a></p>
+security warnings of an attacker impersonating a server.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <div id="rogue">
 <section id="section-7.1">
         <h3 id="name-rogue-servers-on-local-doma">
@@ -1490,15 +1484,17 @@ trust anchor system such as a local domain Certification Authority
         </h3>
 <p id="section-7.2-1">Because the server's public key is encoded into its domain name,
 changing the public key would also change its domain name -- thus, its
-identity as known by client password managers and other configurations
-in clients (e.g., printer, SMB share, etc.).  As such an identity
-change is extremely disruptive, it needs to be avoided.  This means
-the public/private key pair on a server needs to stay static.  The
-tradeoff is servers are vulnerable to their private keys being stolen
-and an active attacker intercepting traffic to that server.  The
-alternatives are to continue using unencrypted communication to local
-servers, which is vulnerable to passive attack, or to condition users
-to validate self-signed certificates for local servers.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+identity as known by the client changes, disrupting configuration of
+that server on the client (e.g., printer configuration, SMB share
+configuration, password manager, etc.).  As such an identity change is
+extremely disruptive, it needs to be avoided.  This means the
+public/private key pair on a server needs to stay static.  The
+tradeoff is a stolen private key allows an attacker to intercept
+traffic to that server for a long time, without requiring the attacker
+to retain access to the server (to steal its changed private key).
+This is not ideal but superior to plain text communication or
+conditioning users to accept self-signed certificate warnings for
+servers on the local domain.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
