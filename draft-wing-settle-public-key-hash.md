@@ -243,13 +243,22 @@ domains. By associating a server’s public key with its origin
 (defined as the scheme, hostname, and port per {{?RFC6454}}), a client can differentiate
 between servers using the same non-unique local domain name, such as printer.local.
 
+The unique names formed by the hostname encoding of this draft allows
+a client to differentiate between a distinct server (which has a
+different hostname than other servers) and an attacker (which lacks
+the private key necessary to complete the TLS handshake).  This is
+useful to avoid security warnings when the client moves between
+networks and connects to uniquely-named servers, while providing
+security warnings of an attacker impersonating a server.
+
 
 ## Rogue Servers on Local Domain {#rogue}
 
 A client may also want to defend against rogue servers installed on
-the local domain.  This requires legitimate servers be enrolled with
-a trusted system such as a local domain Certification Authority (e.g.,
-{{?I-D.sweet-iot-acme}}) and that enrollment verified.
+the local domain.  This requires legitimate servers be enrolled with a
+trust anchor system such as a local domain Certification Authority
+(e.g., {{?I-D.sweet-iot-acme}}) or other system (e.g.,
+{{?EST=RFC7030}}) and that enrollment verified by the client.
 
 
 ## Public Key Hash
