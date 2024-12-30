@@ -111,11 +111,15 @@ Table of Contents
    Web browsers and other application clients store per-host state using
    the host name, including cached form data such as passwords,
    integrated and 3rd party password managers, cookies, and other data.
-   When a name collision occurs (e.g., the same printer.local name on
-   two different networks) the client cannot recognize a different host
-   is being encountered.  By creating a unique name, existing client
-   software (browsers, password managers, client libraries) can continue
-   storing origin-specific data for each of unique name.
+   When a name collision occurs (e.g., the same "printer.local" or the
+   same "front-camera.local" name on two different networks) the client
+   cannot recognize a different host is being encountered.  By creating
+   a unique name, existing client software (browsers, password managers,
+   client libraries) can continue storing origin-specific data for each
+   of unique name.  The encoding of the public key into the hostname
+   prevents an attacking server from impersonating a legitimate server
+   as the attacking server lacks the necessary private key to complete
+   the TLS handshake.
 
    A unique name is created by embedding the hash of the public key into
    the name itself.  This achieves uniqueness and the encoding is also
@@ -189,8 +193,8 @@ Table of Contents
    user about the certificate (as is common today) or simply abort the
    TLS connection.
 
-   Protection against rogue servers on the local network is discussed in
-   Section 7.1.
+   Protection against impersonating servers on the local network is
+   discussed in Section 7.1.
 
 4.2.  Server Operation
 
@@ -268,10 +272,16 @@ Table of Contents
 7.  Security Considerations
 
    This document proposes a new method for clients to authenticate
-   servers within local domains.  By associating a server’s public key
-   with its origin (defined as the scheme, hostname, and port per
-   [RFC6454]), a client can differentiate between servers using the same
-   non-unique local domain name, such as printer.local.
+   servers within local domains.  By encoding a server’s public key with
+   its origin (defined as the scheme, hostname, and port per [RFC6454]),
+   a client can differentiate between legitimate servers where a name
+   collision occurs on a different local domain (e.g., two networks
+   might have their own "router.local" which is their local router).
+   The existing practice of including a (full or) partial MAC address in
+   the hostname does not share the ability to distinguish an
+   impersonating server from a legitimate server; rather, it only
+   creates a unique hostname (as MAC addresses are considered globally
+   unique).
 
    The unique names formed by the hostname encoding of this draft allows
    a client to differentiate between a distinct server (which has a
@@ -282,6 +292,12 @@ Table of Contents
    security warnings of an attacker impersonating a server.
 
 7.1.  Rogue Servers on Local Domain
+
+   The system described in this draft prevents impersonating a server
+   (that is, it prevents an attacker from claiming another server's name
+   because the client will detect the impersonation during TLS
+   handshake).  However, it does not protect against a rogue server
+   which has its own public/private key pair.
 
    A client may also want to defend against rogue servers installed on
    the local domain.  This requires legitimate servers be enrolled with
@@ -460,12 +476,36 @@ Appendix A.  Example Encoding
 
    0EHV4BUAOTDR4WKEXHDRMBEPFGLCK3ASA4A3FWIQGPIKES2J6LIMA
 
-   Finally, if this is a printer named "printer" advertised using
-   ".local", the full FQDN for its unique name would be:
+   Finally, if this is a printer named "printer-58D349296633" (where
+   58D349296633 is its MAC address) its full FQDN would be:
 
-   printer.0EHV4BUAOTDR4WKEXHDRMBEPFGLCK3ASA4A3FWIQGPIKES2J6LIMA.local
+   NOTE: '\' line wrapping per RFC 8792
 
-   and the full FQDN for its short name would be "printer.local".
+   printer-58D349296633. \
+     0EHV4BUAOTDR4WKEXHDRMBEPFGLCK3ASA4A3FWIQGPIKES2J6LIMA.local
+
+   and the full FQDN for its short name would probably include part or
+   all of its MAC address, resulting in a short name of:
+
+   printer-58D349296633.local
+
+   Vendors choose how they create short names using a variety of
+   techniques such as including the vendor name, all or part of the MAC
+   address and using "-".  An example of short names encountered at time
+   of writing at one person's network is below:
+
+     axis-0032A9CB4577.local (Camera)
+     b087dc11296a.local (VoIP phone without vendor prefix)
+     epsonf983c5.local (EPSON printer)
+     et87ef236318c0.local (Lexmark printer)
+     great-room-938c3a3759fb.local (Apple HomePod mini)
+     hp93cee7ef38e7.local (HP printer)
+     npi8ac443.local (Canon printer)
+     ps5-3ec861.local (Sony Playstation 5)
+     rollo-56-ee-83.local (Rollo printer)
+     tailwind-86736c3a6301.local (Tailwind garage door opener)
+     unifi.local (Ubiquity Dream Machine Pro router, and the only
+                  device not use a unique mDNS hostname)
 
 Acknowledgments
 
@@ -477,6 +517,8 @@ Acknowledgments
    including Tor and Freenet's Content Hash Key.
 
    Thanks to Sridharan Rajagopalan for reviews and feedback.
+
+   Thanks to Michael Sweet for specific example of short hostnames.
 
 Author's Address
 
