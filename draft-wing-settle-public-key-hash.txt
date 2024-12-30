@@ -281,12 +281,21 @@ Table of Contents
    [RFC6454]), a client can differentiate between servers using the same
    non-unique local domain name, such as printer.local.
 
+   The unique names formed by the hostname encoding of this draft allows
+   a client to differentiate between a distinct server (which has a
+   different hostname than other servers) and an attacker (which lacks
+   the private key necessary to complete the TLS handshake).  This is
+   useful to avoid security warnings when the client moves between
+   networks and connects to uniquely-named servers, while providing
+   security warnings of an attacker impersonating a server.
+
 7.1.  Rogue Servers on Local Domain
 
    A client may also want to defend against rogue servers installed on
    the local domain.  This requires legitimate servers be enrolled with
-   a trusted system such as a local domain Certification Authority
-   (e.g., [I-D.sweet-iot-acme]) and that enrollment verified.
+   a trust anchor system such as a local domain Certification Authority
+   (e.g., [I-D.sweet-iot-acme]) or other system (e.g., [EST]) and that
+   enrollment verified by the client.
 
 7.2.  Public Key Hash
 
@@ -320,6 +329,11 @@ Table of Contents
    [DNS-SD]   Cheshire, S. and M. Krochmal, "DNS-Based Service
               Discovery", RFC 6763, DOI 10.17487/RFC6763, February 2013,
               <https://www.rfc-editor.org/rfc/rfc6763>.
+
+   [EST]      Pritikin, M., Ed., Yee, P., Ed., and D. Harkins, Ed.,
+              "Enrollment over Secure Transport", RFC 7030,
+              DOI 10.17487/RFC7030, October 2013,
+              <https://www.rfc-editor.org/rfc/rfc7030>.
 
    [Homenet]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,

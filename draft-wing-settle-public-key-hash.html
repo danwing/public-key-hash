@@ -1464,15 +1464,23 @@ attacks.<a href="#section-7-1" class="pilcrow">¶</a></p>
 domains. By associating a server’s public key with its origin
 (defined as the scheme, hostname, and port per <span>[<a href="#RFC6454" class="cite xref">RFC6454</a>]</span>), a client can differentiate
 between servers using the same non-unique local domain name, such as printer.local.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">The unique names formed by the hostname encoding of this draft allows
+a client to differentiate between a distinct server (which has a
+different hostname than other servers) and an attacker (which lacks
+the private key necessary to complete the TLS handshake).  This is
+useful to avoid security warnings when the client moves between
+networks and connects to uniquely-named servers, while providing
+security warnings of an attacker impersonating a server.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <div id="rogue">
 <section id="section-7.1">
         <h3 id="name-rogue-servers-on-local-doma">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-rogue-servers-on-local-doma" class="section-name selfRef">Rogue Servers on Local Domain</a>
         </h3>
 <p id="section-7.1-1">A client may also want to defend against rogue servers installed on
-the local domain.  This requires legitimate servers be enrolled with
-a trusted system such as a local domain Certification Authority (e.g.,
-<span>[<a href="#I-D.sweet-iot-acme" class="cite xref">I-D.sweet-iot-acme</a>]</span>) and that enrollment verified.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+the local domain.  This requires legitimate servers be enrolled with a
+trust anchor system such as a local domain Certification Authority
+(e.g., <span>[<a href="#I-D.sweet-iot-acme" class="cite xref">I-D.sweet-iot-acme</a>]</span>) or other system (e.g.,
+<span>[<a href="#EST" class="cite xref">EST</a>]</span>) and that enrollment verified by the client.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="public-key-hash">
@@ -1530,6 +1538,10 @@ to validate self-signed certificates for local servers.<a href="#section-7.2-1" 
 <dt id="DNS-SD">[DNS-SD]</dt>
         <dd>
 <span class="refAuthor">Cheshire, S.</span> and <span class="refAuthor">M. Krochmal</span>, <span class="refTitle">"DNS-Based Service Discovery"</span>, <span class="seriesInfo">RFC 6763</span>, <span class="seriesInfo">DOI 10.17487/RFC6763</span>, <time datetime="2013-02" class="refDate">February 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6763">https://www.rfc-editor.org/rfc/rfc6763</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="EST">[EST]</dt>
+        <dd>
+<span class="refAuthor">Pritikin, M., Ed.</span>, <span class="refAuthor">Yee, P., Ed.</span>, and <span class="refAuthor">D. Harkins, Ed.</span>, <span class="refTitle">"Enrollment over Secure Transport"</span>, <span class="seriesInfo">RFC 7030</span>, <span class="seriesInfo">DOI 10.17487/RFC7030</span>, <time datetime="2013-10" class="refDate">October 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7030">https://www.rfc-editor.org/rfc/rfc7030</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="Homenet">[Homenet]</dt>
         <dd>
