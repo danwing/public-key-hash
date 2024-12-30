@@ -231,13 +231,6 @@ connection is made to that address, those are also considered
 
 # Security Considerations
 
-Due to operational challenges in key rotation, some servers may need to
-maintain static public/private key pairs over long periods. This introduces a
-tradeoff: while static keys expose servers to risks of private key compromise
-, encrypted communication provides better security than unencrypted communication. The current approach
-to use unencrypted communication to local servers is vulnerable to passive
-attacks.
-
 This document proposes a new method for clients to authenticate servers within local
 domains. By associating a server’s public key with its origin
 (defined as the scheme, hostname, and port per {{?RFC6454}}), a client can differentiate
@@ -265,15 +258,17 @@ trust anchor system such as a local domain Certification Authority
 
 Because the server's public key is encoded into its domain name,
 changing the public key would also change its domain name -- thus, its
-identity as known by client password managers and other configurations
-in clients (e.g., printer, SMB share, etc.).  As such an identity
-change is extremely disruptive, it needs to be avoided.  This means
-the public/private key pair on a server needs to stay static.  The
-tradeoff is servers are vulnerable to their private keys being stolen
-and an active attacker intercepting traffic to that server.  The
-alternatives are to continue using unencrypted communication to local
-servers, which is vulnerable to passive attack, or to condition users
-to validate self-signed certificates for local servers.
+identity as known by the client changes, disrupting configuration of
+that server on the client (e.g., printer configuration, SMB share
+configuration, password manager, etc.).  As such an identity change is
+extremely disruptive, it needs to be avoided.  This means the
+public/private key pair on a server needs to stay static.  The
+tradeoff is a stolen private key allows an attacker to intercept
+traffic to that server for a long time, without requiring the attacker
+to retain access to the server (to steal its changed private key).
+This is not ideal but superior to plain text communication or
+conditioning users to accept self-signed certificate warnings for
+servers on the local domain.
 
 
 # IANA Considerations {#iana}
