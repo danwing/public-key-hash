@@ -267,19 +267,11 @@ Table of Contents
 
 7.  Security Considerations
 
-   This document proposes a new method for clients to authenticate
-   servers within local domains.  By associating a server’s public key
-   with its origin (defined as the scheme, hostname, and port per
-   [RFC6454]), a client can differentiate between servers using the same
-   non-unique local domain name, such as printer.local.
-
-   The unique names formed by the hostname encoding of this draft allows
-   a client to differentiate between a distinct server (which has a
-   different hostname than other servers) and an attacker (which lacks
-   the private key necessary to complete the TLS handshake).  This is
-   useful to avoid security warnings when the client moves between
-   networks and connects to uniquely-named servers, while providing
-   security warnings of an attacker impersonating a server.
+   By associating a server’s public key with its origin (defined as the
+   scheme, hostname, and port per [RFC6454]), a client can perform a TLS
+   handshake with the server to ensure the server possesses the private
+   key associated with that key hash.  This allows the client to detect
+   a rogue server advertisement (e.g., using mDNS).
 
 7.1.  Rogue Servers on Local Domain
 

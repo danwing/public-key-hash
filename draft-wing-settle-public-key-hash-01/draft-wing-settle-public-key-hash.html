@@ -1454,17 +1454,11 @@ connection is made to that address, those are also considered
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-7-1">This document proposes a new method for clients to authenticate servers within local
-domains. By associating a server’s public key with its origin
-(defined as the scheme, hostname, and port per <span>[<a href="#RFC6454" class="cite xref">RFC6454</a>]</span>), a client can differentiate
-between servers using the same non-unique local domain name, such as printer.local.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">The unique names formed by the hostname encoding of this draft allows
-a client to differentiate between a distinct server (which has a
-different hostname than other servers) and an attacker (which lacks
-the private key necessary to complete the TLS handshake).  This is
-useful to avoid security warnings when the client moves between
-networks and connects to uniquely-named servers, while providing
-security warnings of an attacker impersonating a server.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-1">By associating a server’s public key with its origin (defined as the
+scheme, hostname, and port per <span>[<a href="#RFC6454" class="cite xref">RFC6454</a>]</span>), a client can perform a
+TLS handshake with the server to ensure the server possesses the
+private key associated with that key hash. This allows the client to
+detect a rogue server advertisement (e.g., using mDNS).<a href="#section-7-1" class="pilcrow">¶</a></p>
 <div id="rogue">
 <section id="section-7.1">
         <h3 id="name-rogue-servers-on-local-doma">
