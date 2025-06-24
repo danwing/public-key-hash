@@ -155,8 +155,8 @@ match, the TLS session continues. If they do not match, the client
 might warn the user about the certificate (as is common today) or
 simply abort the TLS connection.
 
-Protection against rogue servers on the local network is discussed
-in {{rogue}}.
+Authorizing which servers are allowed on the local network is discussed
+in {{authorizing-servers}}.
 
 
 ## Server Operation
@@ -231,13 +231,16 @@ connection is made to that address, those are also considered
 
 # Security Considerations
 
+## Validating Hostname Authenticity
+
 By associating a server’s public key with its origin (defined as the
 scheme, hostname, and port per {{?RFC6454}}), a client can perform a
 TLS handshake with the server to ensure the server possesses the
 private key associated with that key hash. This allows the client to
-detect a rogue server advertisement (e.g., using mDNS).
+validate the authenticity of a hostname advertised on the local
+network (such as advertised via mDNS).
 
-## Rogue Servers on Local Domain {#rogue}
+## Authorizing Servers on Local Domain {#authorizing-servers}
 
 A client may also want to defend against rogue servers installed on
 the local domain.  This requires legitimate servers be enrolled with a
@@ -245,14 +248,13 @@ trust anchor system such as a local domain Certification Authority
 (e.g., {{?I-D.sweet-iot-acme}}) or other system (e.g.,
 {{?EST=RFC7030}}) and that enrollment verified by the client.
 
-
 ## Public Key Hash
 
-Because the server's public key is encoded into its domain name,
-changing the public key would also change its domain name -- thus, its
+Because the server's public key is encoded into its hostname,
+changing the public key would also change its hostname -- thus, its
 identity as known by the client changes, disrupting configuration of
 that server on the client (e.g., printer configuration, SMB share
-configuration, password manager, etc.).  As such an identity change is
+configuration, password manager).  As such, an identity change is
 extremely disruptive, it needs to be avoided.  This means the
 public/private key pair on a server needs to stay static.  The
 tradeoff is a stolen private key allows an attacker to intercept
