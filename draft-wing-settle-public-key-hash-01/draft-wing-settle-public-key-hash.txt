@@ -4,8 +4,8 @@
 
 Network Working Group                                            D. Wing
 Internet-Draft                                                    Citrix
-Intended status: Standards Track                        29 December 2024
-Expires: 2 July 2025
+Intended status: Standards Track                            24 June 2025
+Expires: 26 December 2025
 
 
                    Public Key Hash for Local Domains
@@ -50,11 +50,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 July 2025.
+   This Internet-Draft will expire on 26 December 2025.
 
 Copyright Notice
 
-   Copyright (c) 2024 IETF Trust and the persons identified as the
+   Copyright (c) 2025 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -267,29 +267,43 @@ Table of Contents
 
 7.  Security Considerations
 
-   TODO: write more on security considerations
+   This document proposes a new method for clients to authenticate
+   servers within local domains.  By associating a server’s public key
+   with its origin (defined as the scheme, hostname, and port per
+   [RFC6454]), a client can differentiate between servers using the same
+   non-unique local domain name, such as printer.local.
+
+   The unique names formed by the hostname encoding of this draft allows
+   a client to differentiate between a distinct server (which has a
+   different hostname than other servers) and an attacker (which lacks
+   the private key necessary to complete the TLS handshake).  This is
+   useful to avoid security warnings when the client moves between
+   networks and connects to uniquely-named servers, while providing
+   security warnings of an attacker impersonating a server.
 
 7.1.  Rogue Servers on Local Domain
 
    A client may also want to defend against rogue servers installed on
    the local domain.  This requires legitimate servers be enrolled with
-   a trusted system such as a local domain Certification Authority
-   (e.g., [I-D.sweet-iot-acme]) and that enrollment verified.
+   a trust anchor system such as a local domain Certification Authority
+   (e.g., [I-D.sweet-iot-acme]) or other system (e.g., [EST]) and that
+   enrollment verified by the client.
 
 7.2.  Public Key Hash
 
    Because the server's public key is encoded into its domain name,
    changing the public key would also change its domain name -- thus,
-   its identity as known by client password managers and other
-   configurations in clients (e.g., printer, SMB share, etc.).  As such
-   an identity change is extremely disruptive, it needs to be avoided.
-   This means the public/private key pair on a server needs to stay
-   static.  The tradeoff is servers are vulnerable to their private keys
-   being stolen and an active attacker intercepting traffic to that
-   server.  The alternatives are to continue using unencrypted
-   communication to local servers, which is vulnerable to passive
-   attack, or to condition users to validate self-signed certificates
-   for local servers.
+   its identity as known by the client changes, disrupting configuration
+   of that server on the client (e.g., printer configuration, SMB share
+   configuration, password manager, etc.).  As such an identity change
+   is extremely disruptive, it needs to be avoided.  This means the
+   public/private key pair on a server needs to stay static.  The
+   tradeoff is a stolen private key allows an attacker to intercept
+   traffic to that server for a long time, without requiring the
+   attacker to retain access to the server (to steal its changed private
+   key).  This is not ideal but superior to plain text communication or
+   conditioning users to accept self-signed certificate warnings for
+   servers on the local domain.
 
 8.  IANA Considerations
 
@@ -309,22 +323,27 @@ Table of Contents
               Discovery", RFC 6763, DOI 10.17487/RFC6763, February 2013,
               <https://www.rfc-editor.org/rfc/rfc6763>.
 
+   [EST]      Pritikin, M., Ed., Yee, P., Ed., and D. Harkins, Ed.,
+              "Enrollment over Secure Transport", RFC 7030,
+              DOI 10.17487/RFC7030, October 2013,
+              <https://www.rfc-editor.org/rfc/rfc7030>.
+
    [Homenet]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
               <https://www.rfc-editor.org/rfc/rfc8375>.
 
    [I-D.davies-internal-tld]
-              Davies, K. and A. McConachie, "A Top-level Domain for
-              Private Use", Work in Progress, Internet-Draft, draft-
-              davies-internal-tld-01, 18 October 2024,
+              Davies, K., McConachie, A., and W. Kumari, "A Top-level
+              Domain for Private Use", Work in Progress, Internet-Draft,
+              draft-davies-internal-tld-03, 3 March 2025,
               <https://datatracker.ietf.org/doc/html/draft-davies-
-              internal-tld-01>.
+              internal-tld-03>.
 
    [I-D.sweet-iot-acme]
               Sweet, M., "ACME-Based Provisioning of IoT Devices", Work
-              in Progress, Internet-Draft, draft-sweet-iot-acme-06, 9
-              August 2024, <https://datatracker.ietf.org/doc/html/draft-
-              sweet-iot-acme-06>.
+              in Progress, Internet-Draft, draft-sweet-iot-acme-07, 7
+              February 2025, <https://datatracker.ietf.org/doc/html/
+              draft-sweet-iot-acme-07>.
 
    [mDNS]     Cheshire, S. and M. Krochmal, "Multicast DNS", RFC 6762,
               DOI 10.17487/RFC6762, February 2013,
@@ -358,6 +377,10 @@ Table of Contents
               Infrastructure Certificate and Certificate Revocation List
               (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
               <https://www.rfc-editor.org/rfc/rfc5280>.
+
+   [RFC6454]  Barth, A., "The Web Origin Concept", RFC 6454,
+              DOI 10.17487/RFC6454, December 2011,
+              <https://www.rfc-editor.org/rfc/rfc6454>.
 
    [RFC6761]  Cheshire, S. and M. Krochmal, "Special-Use Domain Names",
               RFC 6761, DOI 10.17487/RFC6761, February 2013,
